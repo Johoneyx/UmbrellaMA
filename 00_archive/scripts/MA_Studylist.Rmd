@@ -1,0 +1,81 @@
+---
+title: "Studylist_Comparation"
+author: "Johanna M Groening"
+date: "2023-06-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(readxl)
+library(tidyverse)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+library(metafor)
+
+```
+
+```{r}
+HP_S_KD<- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =1))
+HP_D_KR<- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =2))
+
+CHR_T_KD <- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =3))
+
+CHR_S_KR<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =4))
+
+CHR_AR<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =5))
+
+P_J<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =6))
+P_M<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =7))
+
+```
+
+
+
+```{r}
+# Remove whitespace between Author and (Year) in the all_merged dataframe
+all_merged$Author <- gsub("\\s+", "", all_merged$Author)
+
+# View the updated all_merged dataframe
+print(all_merged$Author)
+```
+
+```{r}
+CHR_Author <- c(CHR_T_KD_short$Author, CHR_S_KR_short$Author, CHR_AR_short$Author)
+```
+
+
+```{r}
+
+CHR_Author_unique <- unique(CHR_Author)
+CHR_Author_unique <- gsub("\\s+", "", CHR_Author_unique)
+
+print(CHR_Author_unique)
+```
+```{r}
+HP_Author <- c(HP_S_KD_short$Author, HP_D_KR_short$Author)
+
+HP_Author_unique <- unique(HP_Author)
+
+HP_Author_unique <- gsub("\\s+", "", HP_Author_unique)
+
+print(HP_Author_unique)
+
+```
+
+```{r}
+P_Author <- c(P_J_short$Author, P_M_short$Author)
+
+P_Author_unique <- unique(P_Author)
+
+P_Author_unique <- gsub("\\s+", "", P_Author_unique)
+
+print(P_Author_unique)
+```
+

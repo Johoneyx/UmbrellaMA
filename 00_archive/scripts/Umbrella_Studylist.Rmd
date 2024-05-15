@@ -1,0 +1,247 @@
+---
+title: "Umbrella_studylist_clean"
+author: "Johanna M Groening"
+date: "2023-05-31"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+library(openxlsx)
+```
+
+
+```{r}
+#this is the umbrella evidencemap data in different sheets 
+#the mixed sheet has the reviews from Polkosnik & Robins which have mixed populations
+sl_HP<- as.data.frame(read_xlsx("Studylist_9.6.2023.xlsx", sheet =1))
+sl_Mixed <- as.data.frame(read_xlsx("Studylist_9.6.2023.xlsx", sheet =2))
+
+sl_CHR <- as.data.frame(read_xlsx("Studylist_9.6.2023.xlsx", sheet =3))
+
+sl_P<-as.data.frame(read_xlsx("Studylist_9.6.2023.xlsx", sheet =4))
+
+sl_Moderators<-as.data.frame(read_xlsx("Studylist_9.6.2023.xlsx", sheet =5))
+```
+
+
+
+```{r}
+#First I want only the relevant variables:, node label is study-author, nodetype is studydesign
+sl_HP_new <- select(sl_HP, Outcome, node_label, node_type) %>%
+  mutate(dataframe_name = "sl_HP")
+
+sl_Mixed_new <- select(sl_Mixed, Outcome, node_label, node_type) %>%
+  mutate(dataframe_name = "sl_Mixed")
+
+sl_CHR_new <- select(sl_CHR, Outcome, node_label, node_type) %>%
+  mutate(dataframe_name = "sl_CHR")
+
+sl_P_new <- select(sl_P, Outcome, node_label, node_type) %>%
+  mutate(dataframe_name = "sl_P")
+
+sl_Moderators_new <- select(sl_Moderators, Outcome, node_label, node_type) %>%
+  mutate(dataframe_name = "sl_Moderators")
+
+# All the dataframes together 
+studylist_all <- bind_rows(sl_HP_new, sl_Mixed_new, sl_CHR_new, sl_P_new, sl_Moderators_new)
+```
+
+
+
+```{r}
+#we just want the longitudinal prospective cohort studies (although we dont know whether cohort means prospective - has to be checked later)
+studylist_all <- na.omit(studylist_all)
+
+
+filter <- studylist_all$node_type == "Prospective Cohort" | studylist_all$node_type == "Longitudinal" | studylist_all$node_type == "Cohort"
+
+studylist_cohort <- studylist_all[filter,]
+
+
+view(studylist_cohort)
+
+write.xlsx(studylist_all, "studylist_all.xlsx",row.names = FALSE)
+write.xlsx(studylist_cohort, "studylist_cohort.xlsx",row.names = FALSE)
+```
+
+
+```{r}
+is.factor(studylist_cohort$Outcome)
+```
+```{r}
+studylist_all$Outcome <- factor(studylist_all$Outcome)
+studylist_cohort$Outcome <- factor(studylist_cohort$Outcome)
+
+```
+
+
+```{r}
+library(ggplot2)
+
+
+faktor_counts <- table(studylist_cohort$Outcome)
+faktor_counts_df <- data.frame(Faktor = names(faktor_counts), Anzahl = as.vector(faktor_counts))
+
+faktor_labels <- paste(faktor_counts_df$Faktor, " (", faktor_counts_df$Anzahl, ")", sep = "")
+
+
+bar_plot <- ggplot(faktor_counts_df, aes(x = Faktor, y = Anzahl)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Faktor", y = "Anzahl der Fälle", title = "Anzahl der Fälle pro Faktor") +
+  scale_x_discrete(labels = faktor_labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(bar_plot)
+```
+
+```{r}
+#Recoding some of the variables, e.g. schizophrenia = psychosis etc
+studylist_cohort_new <- studylist_cohort %>% mutate(outcome_level = recode(Outcome, "development of psychosis" ="development of psychosis","development of schizophrenia" = "development of psychosis" ,"Any psychosis" ="Any psychosis","psychotic symptoms" = "psychotic symptoms", "positive psychotic symptoms" = "psychotic symptoms", "positive PLE" = "psychotic symptoms","PLE" = "psychotic symptoms","CHR symptoms"="CHR symptoms", "CHR positive symptoms"= "CHR symptoms", "positive PLE" = "psychotic symptoms", "positive symptoms" = "psychotic symptoms","relapse"="relapse", "transition to psychosis"= "transition to psychosis",  ))
+```
+
+```{r}
+
+faktor_counts <- table(studylist_cohort_new$outcome_level)
+faktor_counts_df <- data.frame(Faktor = names(faktor_counts), Anzahl = as.vector(faktor_counts))
+faktor_labels <- paste(faktor_counts_df$Faktor, " (", faktor_counts_df$Anzahl, ")", sep = "")
+
+bar_plot <- ggplot(faktor_counts_df, aes(x = Faktor, y = Anzahl)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Faktor", y = "Anzahl der Fälle", title = "Anzahl der Fälle pro Faktor") +
+  scale_x_discrete(labels = faktor_labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(bar_plot)
+```
+```{r}
+write.xlsx(studylist_cohort_new, "studylist_cohort_new.xlsx",rowNames = FALSE)
+```
+
+```{r}
+studylist_cohort_new$node_label<-gsub("\\s+(?=[(])|\\s+(?=[)])", "", studylist_cohort_new$node_label, perl = TRUE)
+
+write.xlsx(studylist_cohort_new, "studylist_cohort_new.xlsx",rowNames = FALSE)
+```
+
+```{r}
+#I want only relevant outcomes not those with negative symptoms for example 
+values_to_keep <- c(
+  "psychotic symptoms",
+  "development of psychosis",
+  "transition to psychosis",
+  "CHR symptoms",
+  "relapse",
+  "Any psychosis"
+)
+
+
+studylist_relevant_outcomelevel<- studylist_cohort_new %>%
+  filter(outcome_level %in% values_to_keep)
+
+
+print(studylist_relevant_outcomelevel)
+
+```
+
+```{r}
+#Per outcome level I want to delete duplicate studies (needs to be rechecked later if other outcome levels would make more sense)
+clean_studylist_cohort <- studylist_relevant_outcomelevel %>%
+  group_by(outcome_level) %>%
+  distinct(node_label, .keep_all = TRUE)
+
+print(clean_studylist_cohort)
+
+write.xlsx(clean_studylist_cohort, "clean_studylist_cohort",rowNames = FALSE)
+```
+
+```{r}
+#Erstelle data-frames getrennt nach Sheet aus dem sie kamen (Psychosis, CHR, HP, moderator, mixed)
+studylist_p_clean<-clean_studylist_cohort%>%filter(dataframe_name=="sl_P")
+studylist_CHR_clean<-clean_studylist_cohort%>%filter(dataframe_name=="sl_CHR")
+studylist_HP_clean<-clean_studylist_cohort%>%filter(dataframe_name=="sl_HP")
+studylist_Moderators_clean<-clean_studylist_cohort%>%filter(dataframe_name=="sl_Moderators")
+studylist_Mixed_clean<-clean_studylist_cohort%>%filter(dataframe_name=="sl_Mixed")
+```
+
+```{r pressure, echo=FALSE}
+library(ggplot2)
+
+
+faktor_counts <- table(clean_studylist_cohort$outcome_level)
+faktor_counts_df <- data.frame(Faktor = names(faktor_counts), Anzahl = as.vector(faktor_counts))
+faktor_labels <- paste(faktor_counts_df$Faktor, " (", faktor_counts_df$Anzahl, ")", sep = "")
+
+bar_plot <- ggplot(faktor_counts_df, aes(x = Faktor, y = Anzahl)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Faktor", y = "Anzahl der Fälle", title = "Anzahl der Fälle pro Faktor") +
+  scale_x_discrete(labels = faktor_labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(bar_plot)
+```
+
+```{r pressure, echo=FALSE}
+#pretty plot<3 
+library(ggplot2)
+
+faktor_counts <- clean_studylist_cohort %>%
+  group_by(dataframe_name, outcome_level) %>%
+  summarise(Anzahl = n())
+
+
+bar_plot <- ggplot(faktor_counts, aes(x = outcome_level, y = Anzahl, fill = dataframe_name)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Anzahl), vjust = -0.5, color = "black", size = 3) +
+  labs(x = "Faktor", y = "Anzahl der Fälle", title = "Anzahl der Fälle pro Faktor") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+print(bar_plot)
+
+
+```
+
+
+
+```{r}
+#To every step in a new excel in seperate sheets so that I can look at it after
+library(openxlsx)
+
+
+wb <- createWorkbook()
+
+
+addWorksheet(wb, sheetName = "studylist_p_clean")
+writeData(wb, sheet = "studylist_p_clean", studylist_p_clean)
+
+addWorksheet(wb, sheetName = "studylist_CHR_clean")
+writeData(wb, sheet = "studylist_CHR_clean", studylist_CHR_clean)
+
+addWorksheet(wb, sheetName = "studylist_HP_clean")
+writeData(wb, sheet = "studylist_HP_clean", studylist_HP_clean)
+
+addWorksheet(wb, sheetName = "studylist_relevant_outcomelevel")
+writeData(wb, sheet = "studylist_relevant_outcomelevel", studylist_relevant_outcomelevel)
+
+addWorksheet(wb, sheetName = "studylist_Mixed_clean")
+writeData(wb, sheet = "studylist_Mixed_clean", studylist_Mixed_clean)
+
+addWorksheet(wb, sheetName = "clean_studylist_cohort")
+writeData(wb, sheet = "clean_studylist_cohort", clean_studylist_cohort)
+
+
+saveWorkbook(wb, "all_studylists_clean_R.xlsx", overwrite = TRUE)
+
+```
+

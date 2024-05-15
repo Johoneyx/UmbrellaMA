@@ -1,0 +1,478 @@
+---
+title: "Datacleaning"
+author: "Johanna M Groening"
+date: "2023-06-01"
+output: html_document
+---
+
+```{r, include = FALSE}
+options(error = recover)
+```
+
+```{r, echo=False}
+library(readxl)
+library(tidyverse)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r, echo=False}
+#use minimal because R does crazy things with columns
+HP_S_KD<- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =1, .name_repair = "minimal"))
+HP_D_KR<- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =2,.name_repair = "minimal"))
+
+CHR_T_KD <- as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =3,.name_repair = "minimal"))
+
+CHR_S_KR<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =4,.name_repair = "minimal"))
+CHR_S_KD<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =5,.name_repair = "minimal"))
+CHR_AR<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =6,.name_repair = "minimal",))
+
+P_J<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =7,.name_repair = "minimal"))
+P_M<-as.data.frame(read_xlsx("Umbrella_MA_01.06.2023.xlsx", sheet =8,.name_repair = "minimal"))
+```
+
+```{r}
+# here I didnt include the regression-coefficients as I am not sure whether those are standardized or not, and also excluded statistical tests. Can have a look at those things later
+HP_S_KD_short <- HP_S_KD[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]                      
+```
+
+```{r}
+#to convert variables as characters
+variables_to_convert <- c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration")
+
+# Loop through the variables and convert their types
+for (variable in variables_to_convert) {
+  
+HP_S_KD_short[[variable]] <- as.character(HP_S_KD_short[[variable]])
+}
+
+```
+
+```{r}
+#sometimes riccardo wrote 50+30 to calculate the total number of N from the tables, sum needs to be calculated in this case
+
+
+#function to do this, if the value is not an expression it stays unchanged
+evaluate_expression <- function(expr) {
+  result <- tryCatch(
+    eval(parse(text = expr)),
+    error = function(e) expr
+  )
+  return(result)
+}
+
+
+HP_S_KD_short$N_CU <- sapply(HP_S_KD_short$N_CU, evaluate_expression)
+HP_S_KD_short$N_NCU <-sapply(HP_S_KD_short$N_NCU, evaluate_expression)
+HP_S_KD_short$total_N<-sapply(HP_S_KD_short$total_N, evaluate_expression)
+HP_S_KD_short$CU_P<-sapply(HP_S_KD_short$CU_P, evaluate_expression)
+HP_S_KD_short$NCU_P<-sapply(HP_S_KD_short$NCU_P, evaluate_expression)
+HP_S_KD_short$CU_NP<-sapply(HP_S_KD_short$CU_NP, evaluate_expression)
+HP_S_KD_short$NCU_NP<-sapply(HP_S_KD_short$NCU_NP, evaluate_expression)
+
+#checking if I did it right:)
+compare_df <- cbind(HP_S_KD_short$N_CU, HP_S_KD$N_CU)
+print(compare_df)
+
+```
+```{r}
+#round the numbers that come from the percentage "23% of the participants were cannabis smokers"
+
+HP_S_KD_short$N_CU <- as.numeric(round(HP_S_KD_short$N_CU, digits=0))
+HP_S_KD_short$N_NCU <-as.numeric(round(HP_S_KD_short$N_NCU, digits=0))
+HP_S_KD_short$N_NCU
+```
+
+
+
+
+```{r}
+#sometimes there is <0.001 as p-value, to make it numeric remove <, ask Sagnik whether thats okay
+#0.00099
+# Remove the < or > sign 
+HP_S_KD_short$P_OR <- gsub("[<>]", "", HP_S_KD_short$P_OR)
+HP_S_KD_short$P_aOR<- gsub("[<>]", "", HP_S_KD_short$P_aOR)
+HP_S_KD_short$P_RR<- gsub("[<>]", "", HP_S_KD_short$P_RR)
+HP_S_KD_short$P_aRR<- gsub("[<>]", "", HP_S_KD_short$P_aRR)
+
+#see if it worked
+print(HP_S_KD_short$P_aOR)
+```
+
+```{r}
+#now i can make sure that the variables have the numeric datatype and not logic or any other, to match/combine them later with the other dataframes using full_join
+to_numeric <- c("total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+# Loop through the variables and convert their types
+for (variable in to_numeric) {
+  
+HP_S_KD_short[[variable]] <- as.numeric(HP_S_KD_short[[variable]])
+}
+
+```
+
+
+```{r}
+#checks if everything is alright or any NA-Values have been introduced incorrectly making a dataframe that has the old vectors and the new ones next to each other, so that I can visually check- because there was a warning NAs introduced 
+to_compare <- c("total_N", "CU_P", "CU_NP", "NCU_P", "NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR", "UCI_aOR", "P_aOR", "aRR", "LCI_aRR", "UCI_aRR", "P_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+compare_df <- data.frame(
+  HP_S_KD_short[to_compare],
+  HP_S_KD[to_compare]
+)
+
+compare_df <- compare_df[, order(rep(1:length(to_compare), 2))]
+
+print(compare_df)
+
+```
+
+
+
+```{r}
+
+HP_D_KR_short <- HP_D_KR[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")] 
+
+                         
+```
+
+
+```{r}
+#to convert variables as characters
+variables_to_convert <- c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration")
+
+# Loop through the variables and convert their types
+for (variable in variables_to_convert) {
+  
+HP_D_KR_short[[variable]] <- as.character(HP_D_KR_short[[variable]])
+}
+```
+
+
+
+```{r}
+
+CHR_S_KD_short <- CHR_S_KD[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+```{r}
+#sometimes riccardo wrote 50+30 to calculate the total number of N from the tables, sum needs to be calculated in this case
+
+#function to do this, if the value is not an expression it stays unchanged
+evaluate_expression <- function(expr) {
+  result <- tryCatch(
+    eval(parse(text = expr)),
+    error = function(e) expr
+  )
+  return(result)
+}
+
+
+CHR_S_KD_short$CU_P<-sapply(CHR_S_KD_short$CU_P, evaluate_expression)
+CHR_S_KD_short$NCU_P<-sapply(CHR_S_KD_short$NCU_P, evaluate_expression)
+CHR_S_KD_short$CU_NP<-sapply(CHR_S_KD_short$CU_NP, evaluate_expression)
+CHR_S_KD_short$NCU_NP<-sapply(CHR_S_KD_short$NCU_NP, evaluate_expression)
+CHR_S_KD_short$total_N<-sapply(CHR_S_KD_short$total_N, evaluate_expression)
+
+```
+
+
+
+
+
+
+
+```{r}
+# got the error message selection undefined, find out which variables differ
+to_select <- c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+
+actual_colnames <- colnames(CHR_T_KD)
+
+undefined_columns <- setdiff(to_select, actual_colnames)
+
+print(undefined_columns)
+```
+
+```{r}
+CHR_S_KR_short<-CHR_S_KR[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+```{r}
+# Column names to select
+to_select <- c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+# Get the actual column names of the dataframe
+actual_colnames <- colnames(CHR_S_KR)
+
+# Find the undefined columns
+undefined_columns <- setdiff(to_select, actual_colnames)
+
+# Print the undefined columns
+print(undefined_columns)
+```
+
+
+
+
+```{r}
+CHR_T_KD_short <- CHR_T_KD[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+```{r}
+#sometimes riccardo wrote 50+30 to calculate the total number of N from the tables, sum needs to be calculated in this case
+
+
+#function to do this, if the value is not an expression it stays unchanged
+evaluate_expression <- function(expr) {
+  result <- tryCatch(
+    eval(parse(text = expr)),
+    error = function(e) expr
+  )
+  return(result)
+}
+
+
+CHR_T_KD_short$CU_P<-sapply(CHR_T_KD_short$CU_P, evaluate_expression)
+CHR_T_KD_short$NCU_P<-sapply(CHR_T_KD_short$NCU_P, evaluate_expression)
+CHR_T_KD_short$CU_NP<-sapply(CHR_T_KD_short$CU_NP, evaluate_expression)
+CHR_T_KD_short$NCU_NP<-sapply(CHR_T_KD_short$NCU_NP, evaluate_expression)
+```
+
+
+```{r}
+# Column names to select
+to_select <- c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+# Get the actual column names of the dataframe
+actual_colnames <- colnames(P_M)
+
+# Find the undefined columns
+undefined_columns <- setdiff(to_select, actual_colnames)
+
+# Print the undefined columns
+print(undefined_columns)
+```
+
+
+
+```{r}
+CHR_AR_short<-CHR_AR[, c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+```{r}
+P_J_short<-P_J[,c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+```{r}
+P_M_short<-P_M[,c("Author", "Year", "Country","Cohort", "Target Population",  "Diagnostic tool", "age range",  "Mean age", "% Male","Outcome", "Outcome Measure","lifetime cannabis use", "Cannabis Level of use","comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration", "total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR","Adjusted_Factors_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Adjusted_Factors_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")]
+
+```
+
+
+```{r}
+
+data_frames <- list(CHR_T_KD_short, HP_S_KD_short,CHR_AR_short,CHR_S_KD,CHR_S_KR_short,  P_M_short,P_J_short, HP_D_KR_short)  
+
+
+variables_to_convert <- c("Author", "Year", "Country", "Cohort", "Target Population", "Diagnostic tool", "age range", "Mean age", "% Male", "Outcome", "Outcome Measure", "lifetime cannabis use", "Cannabis Level of use", "comparision(control-group)", "cannabis measure", "Study type", "Prospective?", "FollowUp duration")
+
+
+for (df in data_frames) {
+  for (variable in variables_to_convert) {
+    df[[variable]] <- as.character(df[[variable]])
+  }}
+
+# Create a list of dataframe names
+df_names <- c("CHR_T_KD_short", "HP_S_KD_short", "CHR_AR_short", "CHR_S_KD", "CHR_S_KR_short", "P_M_short", "P_J_short", "HP_D_KR_short")
+
+# Iterate over each dataframe name
+for (df_name in df_names) {
+  # Get the dataframe using its name
+  df <- get(df_name)
+  
+  # Add a column "dataframe" with the dataframe name
+  df$dataframe <- df_name
+  
+  # Assign the modified dataframe back to the original dataframe variable
+  assign(df_name, df)
+}
+
+```
+
+
+
+
+```{r}
+
+data_frames <- list(CHR_T_KD_short, HP_S_KD_short,CHR_AR_short,CHR_S_KD_short,CHR_S_KR_short,  P_M_short,P_J_short, HP_D_KR_short)  
+
+# Variables to convert
+variables_to_convert <- c("total_N", "CU_P", "CU_NP", "NCU_P","NCU_NP", "OR", "LCI_OR", "UCI_OR", "P_OR", "RR", "LCI_RR", "UCI_RR", "P_RR", "aOR", "LCI_aOR","UCI_aOR", "P_aOR",  "aRR", "LCI_aRR","UCI_aRR", "P_aRR", "Mean_C", "SD_C", "Mean_NC", "SD_NC", "SMD", "LCI_SMD", "UCI_SMD", "P(SMD)", "N_CU", "N_NCU")
+
+# Loop through the data frames
+for (df in data_frames) {
+  # Loop through the variables and convert their types
+  for (variable in variables_to_convert) {
+    df[[variable]] <- as.numeric(df[[variable]])
+  }}
+```
+```{r}
+for (df in data_frames)
+{print(df)
+}
+```
+
+```{r}
+
+# Put all data frames into a list
+df_list <- list(HP_S_KD_short, HP_D_KR_short,CHR_T_KD_short,
+                CHR_S_KR_short, CHR_AR_short, P_J_short, P_M_short)
+
+
+# Merge all data frames together and add DataFrame column
+all_merged <- Reduce(function(x, y) {
+  merged <- merge(x, y, by = intersect(names(x), names(y)), all = TRUE)
+  return(merged)
+}, df_list)
+
+# Arrange columns by name
+all_merged <- all_merged[, order(names(all_merged))]
+
+```
+
+
+
+```{r}
+#for a dataframe level variables, that has HP, CHR, P as levels, the info stems from the name of the excel sheet that they are coming from
+all_merged$dataframe_levels <- ifelse(all_merged$dataframe %in% c("HP_S_KD_short", "HP_D_KR_short"), "HP",
+                                         ifelse(all_merged$dataframe %in% c("CHR_T_KD_short", "CHR_S_KR_short", "CHR_S_KD_short", "CHR_AR_short"), "CHR",
+                                                ifelse(all_merged$dataframe %in% c("P_M_short", "P_J_short"), "P", NA)))
+
+```
+
+
+```{r}
+all_
+```
+
+
+```{r}
+
+#I made a group variable, that is based on the TargetPopulation variable values and if they are NA, because have not been extracted I filled them with the dataframe values (see next chunk)
+all_merged$group <- ifelse(is.na(all_merged$"Target Population"), NA,
+                              ifelse(all_merged$"Target Population" %in% c("HP", "HP (Military Conscription cohort)", "NEMESIS (Netherlands Mental Health Survey and Incidence Study )","Adolescents attending eight secondary schools in Greater London","adolescents aged 12–15 years in an urban environment.","adolescents presenting for routine medical care","representative of the national population"), "HP",
+                                     ifelse(all_merged$"Target Population" %in% c("CHR", "UHR", "UHR/COGDIS"), "CHR",
+                                            ifelse(all_merged$"Target Population" %in% c("FEP", "NPS", "SZ","SCZ or SCZA (schizoaffective)", "SCZ comapred tohealthy controls", "SCZ or SCZA", "SCZ or SCZA ( schzioaffective) or healthy subjects","SCZ", "SCZ vs healthy controls","SCZ-Spectrum Dsiorder"), "P", NA))))
+
+# Print the updated dataframe
+print(all_merged$group)
+
+
+```
+
+```{r}
+all_merged$group <- ifelse(is.na(all_merged$group), all_merged$dataframe_levels, all_merged$group)
+
+all_merged$group
+```
+
+```{r}
+all_merged$dataframe<-as.factor(all_merged$dataframe)
+all_merged$dataframe_levels<-as.factor(all_merged$dataframe_levels)
+```
+
+```{r}
+as.factor(all_merged$group)
+```
+```{r}
+all_merged$N_NCU<-as.numeric(all_merged$N_NCU)
+```
+
+```{r}
+#here I made a variable N_calculated based on the numbers from the two different cannabis groups (as I am scared that the N that we extracted sometimes is just a general number but not analysis specific). If cannabis group & control N not extracted I filled it with the total N extracted 
+#Sagnik said not good idea to fill in missing values with total_N but rather check again if data was just not extracted
+all_merged$N_calculated <- round((all_merged$N_CU+all_merged$N_NCU),digits=0)
+all_merged$N_calculated <- ifelse(is.na(all_merged$N_calculated), all_merged$total_N, all_merged$N_calculated)
+```
+
+```{r}
+compare_N <- cbind(all_merged$N_calculated, all_merged$N_CU,all_merged_new$N_NCU)
+print(compare_N)
+
+
+```
+
+```{r}
+#here I tried to remove duplicate authors within one dataframe level (so that its only deleted within Population & Outcome groups for the analysis that Sagnik wanted that includes only those analyses with the highest N from one unique paper)
+
+all_merged<- all_merged %>%
+  arrange(dataframe, desc(N_calculated))
+
+
+all_merged_unique <- all_merged %>%
+  group_by(dataframe, Author) %>%
+  slice(1) %>%
+  ungroup()
+```
+
+```{r}
+all_merged_new_unique$Author
+```
+
+
+
+```{r}
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_nocross <- all_merged[!grepl("Cross", all_merged$"Study type", ignore.case = TRUE), ]
+
+# Reset the row names of the dataframe if needed
+row.names(all_merged) <- NULL
+
+df_nocross$"Study type"
+```
+
+```{r}
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_nocross_unique <- all_merged_unique[!grepl("Cross", all_merged_unique$"Study type", ignore.case = TRUE), ]
+
+row.names(all_merged_unique) <- NULL
+
+df_nocross_unique$"Study type"
+```
+
+
+```{r}
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_prosp <- df_nocross[!grepl("N", df_nocross$"Prospective?" , ignore.case = TRUE), ]
+
+# Reset the row names of the dataframe if needed
+row.names(df_nocross) <- NULL
+
+df_prosp$"Prospective?"
+```
+
+
+```{r}
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_prosp_unique <- df_nocross_unique[!grepl("N", df_nocross_unique$"Prospective?", ignore.case = TRUE), ]
+
+# Reset the row names of the dataframe if needed
+row.names(df_prosp_unique) <- NULL
+
+df_prosp_unique$"Prospective?"
+```
+
+
+
+
+
+
+

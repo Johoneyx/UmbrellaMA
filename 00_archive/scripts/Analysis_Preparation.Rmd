@@ -1,0 +1,92 @@
+---
+title: "Analysis_Preparation"
+author: "Johanna M Groening"
+date: "2023-06-01"
+output: html_document
+---
+
+
+```{r}
+all_merged_new$dataframe
+```
+
+
+```{r}
+all_merged_new$dataframe_levels <- ifelse(all_merged_new$dataframe %in% c("HP_S_KD_short", "HP_D_KR_short"), "HP",
+                                         ifelse(all_merged_new$dataframe %in% c("CHR_T_KD_short", "CHR_S_KR_short", "CHR_S_KD_short", "CHR_AR_short"), "CHR",
+                                                ifelse(all_merged_new$dataframe %in% c("P_M_short", "P_J_short"), "P", NA)))
+
+```
+
+```{r}
+all_merged_new$dataframe_levels
+```
+
+
+```{r}
+# Create a new variable 'group' based on 'Target.Population' values
+all_merged_new$group <- ifelse(is.na(all_merged_new$Target.Population), NA,
+                              ifelse(all_merged_new$Target.Population %in% c("HP", "HP (Military Conscription cohort)", "NEMESIS (Netherlands Mental Health Survey and Incidence Study )","Adolescents attending eight secondary schools in Greater London","adolescents aged 12–15 years in an urban environment.","adolescents presenting for routine medical care","representative of the national population"), "HP",
+                                     ifelse(all_merged_new$Target.Population %in% c("CHR", "UHR", "UHR/COGDIS"), "CHR",
+                                            ifelse(all_merged_new$Target.Population %in% c("FEP", "NPS", "SZ","SCZ or SCZA (schizoaffective)", "SCZ comapred tohealthy controls", "SCZ or SCZA", "SCZ or SCZA ( schzioaffective) or healthy subjects","SCZ", "SCZ vs healthy controls","SCZ-Spectrum Dsiorder"), "P", NA))))
+
+# Print the updated dataframe
+print(all_merged_new$group)
+
+
+```
+
+```{r}
+all_merged_new$group <- ifelse(is.na(all_merged_new$group), all_merged_new$dataframe_levels, all_merged_new$group)
+
+all_merged_new$group
+```
+```{r}
+all_merged_new$Author
+```
+```{r}
+is.factor(all_merged_new$dataframe)
+```
+```{r}
+as.factor(all_merged_new$dataframe)
+```
+```{r}
+as.factor(all_merged_new$dataframe_levels)
+```
+
+```{r}
+as.factor(all_merged_new$group)
+```
+```{r}
+all_merged_new$N_calculated <- round((all_merged_new$N_CU+all_merged_new$N_NCU),digits=0)
+```
+
+```{r}
+all_merged_new$N_calculated <- ifelse(is.na(all_merged_new$N_calculated), all_merged_new$total_N, all_merged_new$N_calculated)
+```
+
+```{r}
+compare_N <- cbind(all_merged_new$N_calculated, all_merged_new$N_CU,all_merged_new$N_NCU)
+print(compare_N)
+
+
+```
+```{r}
+
+library(dplyr)
+
+# Sort the dataframe by N_calculated in descending order within each dataframe level
+all_merged_new <- all_merged_new %>%
+  arrange(dataframe, desc(N_calculated))
+
+# Remove duplicate author values within each dataframe level, keeping the row with the highest N_calculated
+all_merged_new_unique <- all_merged_new %>%
+  group_by(dataframe, Author) %>%
+  slice(1) %>%
+  ungroup()
+```
+
+```{r}
+all_merged_new_unique$Author
+```
+

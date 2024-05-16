@@ -77,6 +77,7 @@ compare_df <- cbind(HP_S_KD_short$N_CU, HP_S_KD$N_CU)
 print(compare_df)
 
 ```
+
 ```{r}
 #round the numbers that come from the percentage "23% of the participants were cannabis smokers"
 

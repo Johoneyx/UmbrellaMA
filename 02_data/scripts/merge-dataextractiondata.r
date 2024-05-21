@@ -64,8 +64,7 @@ merged_df <- rbindlist(df_list, fill = TRUE, use.names = TRUE)
 names(merged_df)
 library(openxlsx)
 
-# Write the dataframe to an Excel file
-write.xlsx(merged_df, "merged_df.xlsx")
+
 
 view(merged_df)
 
@@ -119,10 +118,10 @@ keys_unique <- unique(merged_df$key)
 
 
 
-# Convert keys_unique to a data frame
-keys_unique_df <- data.frame(keys_unique)
 
 # Write to an Excel file
+# Write the dataframe to an Excel file
+write.xlsx(merged_df, "merged_df.xlsx")
 write_xlsx(keys_unique_df, "studylist_extracteddata.xlsx")
 
 

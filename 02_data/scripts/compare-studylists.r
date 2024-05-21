@@ -4,13 +4,40 @@ library(dplyr)
 # Read the Excel file
 studylist_evidencemap <- read_excel("02_data/cleandata/evidencemap_studylist_unique.xlsx")
 
-studylist_extracted <- read_excel("02_data/cleandata/merged_df.xlsx")
+merged_df_extracted<- read_excel("02_data/cleandata/merged_df.xlsx")
 
-# Rename the column to 'key' for merging
-names(studylist_evidencemap)[names(studylist_evidencemap) == 'keys_column'] <- 'key'
+names(merged_df_extracted)
 
-# Merge the dataframes
-merged_data <- merge(merged_df, evidencemap_studylist_unique, by = "key", all = TRUE)
 
-# Create the 'extracted' column
-merged_data$extracted <- ifelse(!is.na(merged_data$key), "x", NA)
+
+# Convert keys_column to lowercase
+studylist_evidencemap$keys_column <- tolower(studylist_evidencemap$keys_column)
+
+# Convert studylist_extracted to lowercase
+studylist_extracted <- tolower(studylist_extracted)
+
+# Install and load the stringdist package if not already done
+if (!require(stringdist)) {
+  install.packages("stringdist")
+  library(stringdist)
+}
+
+# Convert keys_column to lowercase
+studylist_evidencemap$keys_column <- tolower(studylist_evidencemap$keys_column)
+
+# Convert studylist_extracted to lowercase
+studylist_extracted <- tolower(studylist_extracted)
+
+# Add the tidyverse package
+library(tidyverse)
+
+# Add the closest match from studylist_extracted to each keys_column value
+studylist_evidencemap <- studylist_evidencemap %>%
+  mutate(
+    extracted = ifelse(keys_column %in% studylist_extracted, "yes", "no"),
+    closest_match = replace_na(studylist_extracted[stringdist::amatch(keys_column, studylist_extracted)], "No match found")
+  )
+
+view(studylist_evidencemap)
+
+studylist_extracted 

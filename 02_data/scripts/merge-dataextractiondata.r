@@ -6,6 +6,7 @@ library(dplyr)
 library(purrr)
 library(data.table)
 library(readxl)
+library(stringr)
 
 # Read the data using fread from data.table package
 HP_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=1, .name_repair = "minimal"))
@@ -47,8 +48,6 @@ P_KC[, dt_name := "P_KC"]
 df_list <- list(HP_S_KD, HP_D_KR, CHR_T_KD, CHR_S_KR, CHR_S_KD, CHR_AR, P_J, HP_J, CHR_J, P_M, P_CJ, P_KC)
 
 
-library(data.table)
-
 # Convert all variables in all dataframes to character type and make variable names lower case
 df_list <- lapply(df_list, function(df) {
   df <- setDT(df)
@@ -76,27 +75,47 @@ print(unique(merged_df$author))
 print(unique(merged_df$authoronly))
 
 
+print(unique(merged_df$author))
+
+
+merged_df$firstauthor <- ifelse(is.na(str_extract(merged_df$author, ".*(?= \\()")), merged_df$authoronly, str_extract(merged_df$author, ".*(?= \\()"))
+
+
+# Replace "L.Clausen" with "Clausen"
+merged_df$firstauthor <- sub("L.Clausen", "Clausen", merged_df$firstauthor)
+
+# Replace "Jennifer L. Seddon" with "Seddon"
+merged_df$firstauthor <- sub("Jennifer L. Seddon", "Seddon", merged_df$firstauthor)
+
+merged_df$firstauthor
+
+merged_df$publicationyear
+
+
+
+merged_df$publicationyear <- ifelse(is.na(merged_df$year), 
+                                    str_extract(merged_df$author, "\\((\\d+)\\)"), 
+                                    merged_df$year)
+
+
+# Remove all brackets
+merged_df$publicationyear <- gsub("\\(|\\)", "", merged_df$publicationyear)
+
+
+merged_df$publicationyear 
 
 
 
 
+merged_df$pop <- str_extract(merged_df$dt_name, "^[^_]*")
 
+merged_df$pop
 
+merged_df$key <- paste(merged_df$firstauthor, merged_df$publicationyear, merged_df$pop, sep = "_")
 
+merged_df$key
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(unique(merged_df$key))
 
 
 

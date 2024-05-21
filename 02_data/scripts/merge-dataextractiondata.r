@@ -9,17 +9,40 @@ library(readxl)
 
 # Read the data using fread from data.table package
 HP_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=1, .name_repair = "minimal"))
+HP_S_KD[, dt_name := "HP_S_KD"]
+
 HP_D_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =2,.name_repair = "minimal"))
+HP_D_KR[, dt_name := "HP_D_KR"]
+
 CHR_T_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =3,.name_repair = "minimal"))
+CHR_T_KD[, dt_name := "CHR_T_KD"]
+
 CHR_S_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =4,.name_repair = "minimal"))
+CHR_S_KR[, dt_name := "CHR_S_KR"]
+
 CHR_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =5,.name_repair = "minimal"))
+CHR_S_KD[, dt_name := "CHR_S_KD"]
+
 CHR_AR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =6,.name_repair = "minimal"))
+CHR_AR[, dt_name := "CHR_AR"]
+
 P_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =7,.name_repair = "minimal"))
+P_J[, dt_name := "P_J"]
+
 HP_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =8,.name_repair = "minimal"))
+HP_J[, dt_name := "HP_J"]
+
 CHR_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=9,.name_repair = "minimal"))
+CHR_J[, dt_name := "CHR_J"]
+
 P_M <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=10,.name_repair = "minimal"))
+P_M[, dt_name := "P_M"]
+
 P_CJ <- as.data.table(read_xlsx("02_data/rawdata//Dataextraction&Rob_Carolina_04.10.2023_JMG_05.10.2023_20.05.2024.xlsx", sheet =1,.name_repair = "minimal"))
+P_CJ[, dt_name := "P_CJ"]
+
 P_KC <- as.data.table(read_xlsx("02_data/rawdata//New_excel_Carolina_09.10_20.05.2024.xlsx", sheet =2,.name_repair = "minimal"))
+P_KC[, dt_name := "P_KC"]
 
 df_list <- list(HP_S_KD, HP_D_KR, CHR_T_KD, CHR_S_KR, CHR_S_KD, CHR_AR, P_J, HP_J, CHR_J, P_M, P_CJ, P_KC)
 
@@ -38,6 +61,7 @@ df_list <- lapply(df_list, function(df) {
 # Concatenate all dataframes together
 merged_df <- rbindlist(df_list, fill = TRUE, use.names = TRUE)
 
+
 names(merged_df)
 library(openxlsx)
 
@@ -46,11 +70,10 @@ write.xlsx(merged_df, "merged_df.xlsx")
 
 view(merged_df)
 
+summary(merged_df)
 
-
-
-
-
+print(unique(merged_df$author))
+print(unique(merged_df$authoronly))
 
 
 

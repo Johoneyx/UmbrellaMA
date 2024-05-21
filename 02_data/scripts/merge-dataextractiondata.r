@@ -115,9 +115,15 @@ merged_df$key <- paste(merged_df$firstauthor, merged_df$publicationyear, merged_
 
 merged_df$key
 
-print(unique(merged_df$key))
+keys_unique <- unique(merged_df$key)
 
 
+
+# Convert keys_unique to a data frame
+keys_unique_df <- data.frame(keys_unique)
+
+# Write to an Excel file
+write_xlsx(keys_unique_df, "studylist_extracteddata.xlsx")
 
 
 

@@ -80,20 +80,17 @@ lower_and_factorize <- function(x) {
 }
 
 
-
 evidencemap_studylist$studydesign<-tolower(evidencemap_studylist$studydesign)
 levels(as.factor(evidencemap_studylist$studydesign))
 
 evidencemap_studylist <- evidencemap_studylist %>%
   mutate(studydesign = recode(studydesign, "cohorty" = "cohort"))
 
-
 evidencemap_studylist_unique <- evidencemap_studylist %>%
   distinct(keys_column, .keep_all = TRUE)
 
 view(evidencemap_studylist_unique)
   summary(evidencemap_studylist_unique)
-
 
 # Write evidencemap_studylist_unique to an Excel file
 write.xlsx(evidencemap_studylist_unique, "evidencemap_studylist_unique.xlsx")

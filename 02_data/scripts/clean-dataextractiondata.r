@@ -10,8 +10,9 @@ library(stringr)
 
 merged_df <-as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/mergeddata/merged_df.xlsx"))
 
+
 #create firstauthor variable
-merged_df$firstauthor <- ifelse(is.na(str_extract(merged_df$author, ".*(?= \\()")), merged_df$authoronly, str_extract(merged_df$author, ".*(?= \\()"))
+merged_df$firstauthor <- ifelse(is.na(str_extract(merged_df$author, ".*(?=\\()")), merged_df$authoronly, str_extract(merged_df$author, ".*(?=\\()"))
 
 #to lowercase
 merged_df$firstauthor <-tolower(merged_df$firstauthor)
@@ -22,6 +23,10 @@ new_names <- c("l.clausen"= "clausen","jennifer l. seddon"= "seddon", "ferdindan
 
 # Rename authors
 merged_df$firstauthor <- recode(merged_df$firstauthor, !!!new_names)
+
+
+# Select rows where author equals "Foti(2010)" and change year to 2010
+merged_df$year[merged_df$author == "Foti(2010)"] <- 2010
 
 
 #create publicationyear variable
@@ -41,38 +46,27 @@ merged_df$psycontpop<- str_extract(merged_df$dt_name, "^[^_]*")
 merged_df$studycode <- paste((gsub("\\s", "", merged_df$firstauthor)), merged_df$pubyear, merged_df$psycontpop, sep = "_")
 
 
-
 studycode_unique <- unique(merged_df$studycode)
 studycode_unique
 
 
 
+# Create dataextraction variable
+merged_df$dataextraction <- ifelse(is.na(merged_df$"extracted by"), merged_df$dt_name, merged_df$"extracted by")
 
+unique(merged_df$dataextraction)
 
+# Load the dplyr package
+library(dplyr)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Recode values in the dataextraction column
+merged_df$dataextraction <- recode(merged_df$dataextraction, 
+                                   "HP_S_KD" = "Kaito & David", 
+                                   "HP_D_KR" = "Kaito and Riccardo", 
+                                   "CHR_S_KD" = "Kaito and David", 
+                                   "P_J" = "Johanna", 
+                                   "HP_J" = "Johanna", 
+                                   "P_KC" = "Kaito and Carolina")
 
 
 

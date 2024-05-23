@@ -9,40 +9,56 @@ library(readxl)
 library(stringr)
 
 # Read the data using fread from data.table package
-HP_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=1, .name_repair = "minimal"))
+HP_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=1,))
+
+# Remove completely empty rows
+HP_S_KD<- HP_S_KD[!apply(is.na(HP_S_KD), 1, all), ]
+#create a variable that includes filename
 HP_S_KD[, dt_name := "HP_S_KD"]
 
-HP_D_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =2,.name_repair = "minimal"))
+HP_D_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =2))
+HP_D_KR<- HP_D_KR[!apply(is.na(HP_D_KR), 1, all), ]
 HP_D_KR[, dt_name := "HP_D_KR"]
 
-CHR_T_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =3,.name_repair = "minimal"))
+CHR_T_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =3))
+CHR_T_KD<- CHR_T_KD[!apply(is.na(CHR_T_KD), 1, all), ]
 CHR_T_KD[, dt_name := "CHR_T_KD"]
 
-CHR_S_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =4,.name_repair = "minimal"))
+CHR_S_KR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =4))
+CHR_S_KR<- CHR_S_KR[!apply(is.na(CHR_S_KR), 1, all), ]
 CHR_S_KR[, dt_name := "CHR_S_KR"]
 
-CHR_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =5,.name_repair = "minimal"))
+CHR_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =5))
+CHR_S_KD<- CHR_S_KD[!apply(is.na(CHR_S_KD), 1, all), ]
 CHR_S_KD[, dt_name := "CHR_S_KD"]
 
-CHR_AR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =6,.name_repair = "minimal"))
+CHR_AR <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =6))
+CHR_AR<- CHR_AR[!apply(is.na(CHR_AR), 1, all), ]
 CHR_AR[, dt_name := "CHR_AR"]
 
-P_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =7,.name_repair = "minimal"))
+P_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =7))
+P_J<- P_J[!apply(is.na(P_J), 1, all), ]
 P_J[, dt_name := "P_J"]
 
-HP_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =8,.name_repair = "minimal"))
+
+HP_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =8))
+HP_J<- HP_J[!apply(is.na(HP_J), 1, all), ]
 HP_J[, dt_name := "HP_J"]
 
-CHR_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=9,.name_repair = "minimal"))
+CHR_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=9))
+CHR_J<- CHR_J[!apply(is.na(CHR_J), 1, all), ]
 CHR_J[, dt_name := "CHR_J"]
 
 P_M <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=10,.name_repair = "minimal"))
+P_M<- P_M[!apply(is.na(P_M), 1, all), ]
 P_M[, dt_name := "P_M"]
 
-P_CJ <- as.data.table(read_xlsx("02_data/rawdata//Dataextraction&Rob_Carolina_04.10.2023_JMG_05.10.2023_20.05.2024.xlsx", sheet =1,.name_repair = "minimal"))
+P_CJ <- as.data.table(read_xlsx("02_data/rawdata//Dataextraction&Rob_Carolina_04.10.2023_JMG_05.10.2023_20.05.2024.xlsx", sheet =1))
+P_CJ<- P_CJ[!apply(is.na(P_CJ), 1, all), ]
 P_CJ[, dt_name := "P_CJ"]
 
-P_KC <- as.data.table(read_xlsx("02_data/rawdata//New_excel_Carolina_09.10_20.05.2024.xlsx", sheet =2,.name_repair = "minimal"))
+P_KC <- as.data.table(read_xlsx("02_data/rawdata//New_excel_Carolina_09.10_20.05.2024.xlsx", sheet =2))
+P_KC<- P_KC[!apply(is.na(P_KC), 1, all), ]
 P_KC[, dt_name := "P_KC"]
 
 df_list <- list(HP_S_KD, HP_D_KR, CHR_T_KD, CHR_S_KR, CHR_S_KD, CHR_AR, P_J, HP_J, CHR_J, P_M, P_CJ, P_KC)
@@ -61,10 +77,9 @@ df_list <- lapply(df_list, function(df) {
 merged_df <- rbindlist(df_list, fill = TRUE, use.names = TRUE)
 
 
-write_xlsx(merged_df, "merged_df.xlsx")
+write_xlsx(merged_df, "mergeddata/merged_df.xlsx")
 
-
-
+View(merged_df)
 
 
 

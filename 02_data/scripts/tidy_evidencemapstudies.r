@@ -2,13 +2,12 @@ library(tidyverse)
 library(readxl)
 library(writexl)
 library(ggplot2)
-library(dplyr)
 library(metafor)
 library(dplyr)
 library(stringr)
 library(purrr)
 library(openxlsx)
-library(stringr)
+
 
 df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =1) %>%
   as.data.frame() %>%
@@ -53,35 +52,40 @@ evidencemap_combined_restructured <- evidencemap_combined %>%
   fill(population) %>%
   mutate(outcome = ifelse(node_type_simple %in% c("Outcome", "Suboutcome"), node_label, NA)) %>% fill(outcome) %>%
   mutate(firstauthor = str_extract(node_label, ".*(?= \\()")) %>%
-mutate(year = str_extract(node_label, "(?<=\\()\\d{4}(?=\\w\\))"))
-
-#exclude Van Os (2009) and Linscott (2013) as primary studies were not mentioned 
-#evidencemap_combined_restructured<- evidencemap_combined_restructured %>%
-  #filter(reviews != "Van Os(2009)", reviews != "Linscott (2013)")
+mutate(year = str_extract(node_label, "\\d{4}"))
 
 
+evidencemap_studylist_filtered <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(firstauthor)) 
 
-
-evidencemap_studylist <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(firstauthor)) %>%
+evidencemap_studylist <- evidencemap_studylist_filtered %>%
 mutate(firstauthor = str_replace_all(firstauthor, "et al", "")) %>%
-mutate(firstauthor = str_replace_all(firstauthor, c("Rossler","Rössler", "Roessler"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Branas", "Brañas"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Degenhart", "Degenhardt"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Barrigon", "Barrigón"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Beaza", "Baeza"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Bushy", "Buchy"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Collizi", "Colizi"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Krebbs", "Krebs"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Mane", "Mané"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Martinez-Arevalo", "Martínez Arévalo"))%>%
-mutate(firstauthor = str_replace_all(firstauthor,c("Pelayo-Teran","Pelayo-Terran" ) , "Pelayo-Terán")%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Philips", "Phillips"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "van os", "Van Os"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Wiliiams", "Williams"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Gonzales-Pinto", "González-Pinto"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Setien-Suero", "Setién-Suero"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Rossler", "Rössler")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Rössler", "Roessler")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Branas", "Brañas")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Degenhart", "Degenhardt")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Barrigon", "Barrigón")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Beaza", "Baeza")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Bushy", "Buchy")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Collizi", "Colizi")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Krebbs", "Krebs")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Mane", "Mané")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Martinez-Arevalo", "Martínez Arévalo")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Pelayo-Teran", "Pelayo-Terán")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Pelayo-Terran", "Pelayo-Terán")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Philips", "Phillips")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "van os", "Van Os")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Wiliiams", "Williams")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Gonzales-Pinto", "González-Pinto")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Setien-Suero", "Setién-Suero")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari"))
+
+
+
+evidencemap_studylist <- evidencemap_studylist %>%
 rename(studydesign = node_type)
+
+names(evidencemap_studylist)
+
 
 evidencemap_studylist <- evidencemap_studylist %>% select(population, Topic, primary_studies, firstauthor, year, reviews, cannabis_use, outcome, studydesign, k, N, "I-Squared", effect_size, effect_size_measure, LCI, HCI, "p-value", significance, group_1_size, Rob_label)
 

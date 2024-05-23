@@ -10,11 +10,23 @@ library(purrr)
 library(openxlsx)
 library(stringr)
 
-#read in dataframes fro the evidencemap excel
-df_HP_map <- as.data.frame((read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =1)))
-df_CHR_map <- as.data.frame((read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =2)))
-df_P_map <- as.data.frame((read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =3)))
-df_Mod_map <- as.data.frame((read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =4)))
+df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =1) %>%
+  as.data.frame() %>%
+  filter(rowSums(is.na(.)) != ncol(.))
+
+df_CHR_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =2) %>%
+  as.data.frame() %>%
+  filter(rowSums(is.na(.)) != ncol(.))
+
+df_P_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =3) %>%
+  as.data.frame() %>%
+  filter(rowSums(is.na(.)) != ncol(.))
+
+df_Mod_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =4) %>%
+  as.data.frame() %>%
+  filter(rowSums(is.na(.)) != ncol(.))
+
+
 
 df_map_list <-list(df_HP_map = df_HP_map, df_CHR_map = df_CHR_map, df_P_map = df_P_map, df_Mod_map = df_Mod_map) 
 
@@ -27,8 +39,8 @@ df_map_list <- lapply(df_map_list, function(df) {
 # Join all the data frames together using a full join
 evidencemap_combined <- reduce(df_map_list, full_join)
 
-summary(evidencemap_combined)
-view(evidencemap_combined)
+
+
 
 #Create new variables (restructure dataframe)
 evidencemap_combined_restructured <- evidencemap_combined %>%
@@ -40,37 +52,55 @@ evidencemap_combined_restructured <- evidencemap_combined %>%
   mutate(population = ifelse(node_type_simple == "Population", node_label, NA))%>%
   fill(population) %>%
   mutate(outcome = ifelse(node_type_simple %in% c("Outcome", "Suboutcome"), node_label, NA)) %>% fill(outcome) %>%
-  mutate(author = str_extract(node_label, ".*(?= \\()"), year = str_extract(node_label, "(?<=\\()\\d{4}(?=\\))"),
-    .keep = "unused") %>%
-  mutate_all(as.factor)
+  mutate(firstauthor = str_extract(node_label, ".*(?= \\()")) %>%
+mutate(year = str_extract(node_label, "(?<=\\()\\d{4}(?=\\w\\))"))
 
-view(evidencemap_combined_restructured)
-names(evidencemap_combined_restructured)
-
-
-evidencemap_studylist <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(author)) %>%
-mutate(author = str_replace_all(author, "et al", "")) %>%
-rename(studydesign = node_type) 
+#exclude Van Os (2009) and Linscott (2013) as primary studies were not mentioned 
+#evidencemap_combined_restructured<- evidencemap_combined_restructured %>%
+  #filter(reviews != "Van Os(2009)", reviews != "Linscott (2013)")
 
 
+
+
+evidencemap_studylist <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(firstauthor)) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "et al", "")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, c("Rossler","Rössler", "Roessler"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Branas", "Brañas"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Degenhart", "Degenhardt"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Barrigon", "Barrigón"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Beaza", "Baeza"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Bushy", "Buchy"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Collizi", "Colizi"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Krebbs", "Krebs"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Mane", "Mané"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Martinez-Arevalo", "Martínez Arévalo"))%>%
+mutate(firstauthor = str_replace_all(firstauthor,c("Pelayo-Teran","Pelayo-Terran" ) , "Pelayo-Terán")%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Philips", "Phillips"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "van os", "Van Os"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Wiliiams", "Williams"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Gonzales-Pinto", "González-Pinto"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Setien-Suero", "Setién-Suero"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari")) %>%
+rename(studydesign = node_type)
+
+evidencemap_studylist <- evidencemap_studylist %>% select(population, Topic, primary_studies, firstauthor, year, reviews, cannabis_use, outcome, studydesign, k, N, "I-Squared", effect_size, effect_size_measure, LCI, HCI, "p-value", significance, group_1_size, Rob_label)
+
+
+
+# Create the keys_column and broad_topic
 evidencemap_studylist <- evidencemap_studylist %>%
-select(population,Topic,primary_studies,author,year,reviews,cannabis_use,outcome,studydesign,k,N,"I-Squared",effect_size,effect_size_measure,LCI,HCI, "p-value",significance,group_1_size,Rob_label)
-
-names(evidencemap_studylist)
-
-# Create the keys_column
-evidencemap_studylist <- evidencemap_studylist %>%
-  mutate(population = case_match(
-    population,
-    "Healthy Population" ~ "HP",
-    "CHR Population" ~ "CHR",
-    "Psychosis Population" ~ "P",
-    "Environmental Moderators" ~ "EnvMod",
-    "Genetic  Moderators" ~ "GenMod"
-  ), 
-  authorww = str_replace_all(author, "\\s", ""),
-  keys_column = paste(authorww, year, population, sep = "_")
+  mutate(
+    authorww = str_replace_all(firstauthor, "\\s", ""),
+    keys_column = paste(authorww, year, population, sep = "_"),
+    broad_topic = case_when(
+      population == "Healthy Population" ~ "HP",
+      population == "CHR Population" ~ "CHR",
+      population == "Psychosis Population" ~ "P",
+      population == "Environmental Moderators" ~ "EnvMod",
+      population == "Genetic  Moderators" ~ "GenMod"
+    )
   )
+
 
 ###factorize 
 # Define the function
@@ -89,13 +119,16 @@ evidencemap_studylist <- evidencemap_studylist %>%
 evidencemap_studylist_unique <- evidencemap_studylist %>%
   distinct(keys_column, .keep_all = TRUE)
 
-view(evidencemap_studylist_unique)
-  summary(evidencemap_studylist_unique)
 
 # Write evidencemap_studylist_unique to an Excel file
-write.xlsx(evidencemap_studylist_unique, "evidencemap_studylist_unique.xlsx")
+write.xlsx(evidencemap_studylist_unique, "02_data/cleandata/evidencemap_studylist_unique.xlsx")
 
 # Write evidencemap_studylist to an Excel file
-write.xlsx(evidencemap_studylist, "evidencemap_studylist.xlsx")
+write.xlsx(evidencemap_studylist, "02_data/cleandata/evidencemap_studylist.xlsx")
 
+
+
+studylist_yearNA <- evidencemap_studylist %>%
+  filter(is.na(year))
+  View(studylist_yearNA)
 

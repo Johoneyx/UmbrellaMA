@@ -39,8 +39,6 @@ df_map_list <- lapply(df_map_list, function(df) {
 evidencemap_combined <- reduce(df_map_list, full_join)
 
 
-
-
 #Create new variables (restructure dataframe)
 evidencemap_combined_restructured <- evidencemap_combined %>%
   mutate(cannabis_use = ifelse(node_type_simple %in% c("Moderator", "Level"), node_label, NA)) %>%  
@@ -132,7 +130,4 @@ write.xlsx(evidencemap_studylist, "02_data/cleandata/evidencemap_studylist.xlsx"
 
 
 
-studylist_yearNA <- evidencemap_studylist %>%
-  filter(is.na(year))
-  View(studylist_yearNA)
 

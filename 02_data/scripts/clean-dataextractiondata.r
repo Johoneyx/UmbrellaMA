@@ -19,7 +19,9 @@ merged_df$firstauthor <-tolower(merged_df$firstauthor)
 
 
 # Definining new names
-new_names <- c("l.clausen"= "clausen","jennifer l. seddon"= "seddon", "ferdindand"="ferdinand", "bergé(2016)" = "berge", "shimmelmann" = "schimmelmann", "j.m. stone"   =" stone", "r. emsley"= "emsley",   "kristine rømer thomsen" =  "romer thomsen", "isaac et al" ="isaac", "vandijk" ="van djik", "gonzalez-into" ="gonzalez-pinto", "auther  et al." = "auther", "miller et al" = "miller", "rössler" = "roessler")
+new_names <- c("l.clausen"= "clausen","jennifer l. seddon"= "seddon", "ferdindand"="ferdinand", "bergé(2016)" = "bergé", "shimmelmann" = "schimmelmann", "j.m. stone"   =" stone", "r. emsley"= "emsley",   "kristine rømer thomsen" =  "romer thomsen", "isaac et al " ="isaac", "vandijk" ="van dijk", "gonzalez-into" ="gonzalez-pinto", "auther  et al." = "auther", "miller et al " = "miller", "roessler" = "rössler", "setien-suero "= "setién-suero", "gonzalez-pinto"= "gonzález-pinto",  "martinez-arevalo"= "martínez arévalo", "buchy (2015" = "buchy","auther et al. "= "auther" )
+
+
 
 # Rename authors
 merged_df$firstauthor <- recode(merged_df$firstauthor, !!!new_names)
@@ -30,9 +32,8 @@ merged_df$year[merged_df$author == "Foti(2010)"] <- 2010
 
 
 #create publicationyear variable
-merged_df$pubyear <- ifelse(is.na(merged_df$year), 
-                                    str_extract(merged_df$author, "\\((\\d+)\\)"), 
-                                    merged_df$year)
+merged_df$pubyear <- ifelse(is.na(merged_df$year), str_extract(merged_df$author, "\\((\\d+)\\)"), 
+merged_df$year)
 
 
 # Remove all brackets
@@ -43,21 +44,15 @@ merged_df$pubyear <- gsub("\\(|\\)", "", merged_df$pubyear)
 merged_df$psycontpop<- str_extract(merged_df$dt_name, "^[^_]*")
 
 
-merged_df$studycode <- paste((gsub("\\s", "", merged_df$firstauthor)), merged_df$pubyear, merged_df$psycontpop, sep = "_")
+merged_df$study_year_psycont<- paste((gsub("\\s", "", merged_df$firstauthor)), merged_df$pubyear, merged_df$psycontpop, sep = "_")
 
 
-studycode_unique <- unique(merged_df$studycode)
-studycode_unique
-
+merged_df$studycode <- paste((gsub("\\s", "", merged_df$firstauthor)), merged_df$pubyear,  sep = "_")
 
 
 # Create dataextraction variable
 merged_df$dataextraction <- ifelse(is.na(merged_df$"extracted by"), merged_df$dt_name, merged_df$"extracted by")
 
-unique(merged_df$dataextraction)
-
-# Load the dplyr package
-library(dplyr)
 
 # Recode values in the dataextraction column
 merged_df$dataextraction <- recode(merged_df$dataextraction, 
@@ -68,19 +63,11 @@ merged_df$dataextraction <- recode(merged_df$dataextraction,
                                    "HP_J" = "Johanna", 
                                    "P_KC" = "Kaito and Carolina")
 
+merged_df_clean <- merged_df %>% filter(!is.na(firstauthor))
 
 
 
-
-
-
-
-
-
-
-
-
-
+write.xlsx(merged_df_clean, "02_data/cleandata/merged_df_clean.xlsx")
 
 
 

@@ -10,7 +10,7 @@ df_studylist_cohort <- df_studylist %>%
 filter(Topic != "Genetic Moderators") 
 
 df_studylist_cohort_unique <- df_studylist_cohort %>%
-  distinct(keys_column, .keep_all = TRUE)
+  distinct(study_year_psycont, .keep_all = TRUE)
 
 
 View(df_studylist_cohort_unique)

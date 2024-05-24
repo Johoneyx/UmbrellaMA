@@ -58,7 +58,7 @@ evidencemap_studylist_filtered <- evidencemap_combined_restructured %>% filter(n
 evidencemap_studylist <- evidencemap_studylist_filtered %>%
 mutate(firstauthor = str_replace_all(firstauthor, "et al", "")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Rossler", "Rössler")) %>%
-mutate(firstauthor = str_replace_all(firstauthor, "Rössler", "Roessler")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Roessler", "Rössler")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Branas", "Brañas")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Degenhart", "Degenhardt")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Barrigon", "Barrigón")) %>%
@@ -75,14 +75,25 @@ mutate(firstauthor = str_replace_all(firstauthor, "van os", "Van Os")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Wiliiams", "Williams")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Gonzales-Pinto", "González-Pinto")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Setien-Suero", "Setién-Suero")) %>%
-mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari"))
+mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Colizi", "Colizzi"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Schimmelman","Schimmelmann"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Arsenault ", "Arseneault"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Arsenault", "Arseneault"))
+%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue"))
+%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking"))
+%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))
 
 
+
+print(sort(unique(evidencemap_studylist$firstauthor)))
 
 evidencemap_studylist <- evidencemap_studylist %>%
 rename(studydesign = node_type)
 
-names(evidencemap_studylist)
 
 
 evidencemap_studylist <- evidencemap_studylist %>% select(population, Topic, primary_studies, firstauthor, year, reviews, cannabis_use, outcome, studydesign, k, N, "I-Squared", effect_size, effect_size_measure, LCI, HCI, "p-value", significance, group_1_size, Rob_label)
@@ -93,33 +104,32 @@ evidencemap_studylist <- evidencemap_studylist %>% select(population, Topic, pri
 evidencemap_studylist <- evidencemap_studylist %>%
   mutate(
     authorww = str_replace_all(firstauthor, "\\s", ""),
-    keys_column = paste(authorww, year, population, sep = "_"),
     broad_topic = case_when(
       population == "Healthy Population" ~ "HP",
       population == "CHR Population" ~ "CHR",
       population == "Psychosis Population" ~ "P",
       population == "Environmental Moderators" ~ "EnvMod",
-      population == "Genetic  Moderators" ~ "GenMod"
-    )
+      population == "Genetic  Moderators" ~ "GenMod"), 
+     study_year_psycont = paste(authorww, year, broad_topic, sep = "_"),
+     studycode = paste(authorww, year, sep = "_"),
+    
   )
 
 
-###factorize 
-# Define the function
-lower_and_factorize <- function(x) {
-  x <- tolower(x)
-  levels(as.factor(x))
-}
+
 
 
 evidencemap_studylist$studydesign<-tolower(evidencemap_studylist$studydesign)
-levels(as.factor(evidencemap_studylist$studydesign))
+
+evidencemap_studylist$study_year_psycont<- tolower(evidencemap_studylist$study_year_psycont)
+
+evidencemap_studylist$studycode<- tolower(evidencemap_studylist$studycode)
 
 evidencemap_studylist <- evidencemap_studylist %>%
   mutate(studydesign = recode(studydesign, "cohorty" = "cohort"))
 
 evidencemap_studylist_unique <- evidencemap_studylist %>%
-  distinct(keys_column, .keep_all = TRUE)
+  distinct(study_year_psycont, .keep_all = TRUE)
 
 
 # Write evidencemap_studylist_unique to an Excel file
@@ -129,5 +139,5 @@ write.xlsx(evidencemap_studylist_unique, "02_data/cleandata/evidencemap_studylis
 write.xlsx(evidencemap_studylist, "02_data/cleandata/evidencemap_studylist.xlsx")
 
 
-
+View(evidencemap_studylist)
 

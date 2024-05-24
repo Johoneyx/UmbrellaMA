@@ -75,17 +75,13 @@ mutate(firstauthor = str_replace_all(firstauthor, "van os", "Van Os")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Wiliiams", "Williams")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Gonzales-Pinto", "González-Pinto")) %>%
 mutate(firstauthor = str_replace_all(firstauthor, "Setien-Suero", "Setién-Suero")) %>%
-mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Colizi", "Colizzi"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Schimmelman","Schimmelmann"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Arsenault ", "Arseneault"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Arsenault", "Arseneault"))
-%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue"))
-%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking"))
-%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))
+mutate(firstauthor = str_replace_all(firstauthor, "Caspari D", "Caspari")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Colizi", "Colizzi")) %>%
+mutate(firstauthor = str_replace_all(firstauthor, "Schimmelman","Schimmelmann")) %>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Arsenault ", "Arseneault")) %>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Arsenault","Arseneault")) %>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue")) %>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))
 
 
 

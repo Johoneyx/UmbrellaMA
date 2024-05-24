@@ -19,9 +19,10 @@ merged_df$firstauthor <-tolower(merged_df$firstauthor)
 
 
 # Definining new names
-new_names <- c("l.clausen"= "clausen","jennifer l. seddon"= "seddon", "ferdindand"="ferdinand", "bergé(2016)" = "bergé", "shimmelmann " = "schimmelmann", "j.m. stone"   =" stone", "r. emsley"= "emsley",   "kristine rømer thomsen" =  "romer thomsen", "isaac et al " ="isaac", "vandijk" ="van dijk", "arsenault "= "arseneault", "auther  et al." = "auther", "miller et al " = "miller", "roessler" = "rössler", "setien-suero "= "setién-suero", "gonzalez-pinto"= "gonzález-pinto",  "martinez-arevalo"= "martínez arévalo", "buchy (2015" = "buchy","auther et al. "= "auther", "degenhart and hall" = "degenhardt and hall", "riecher-roessler" = "riecher-rössler")
+new_names <- c("l.clausen"= "clausen","jennifer l. seddon"= "seddon", "ferdindand"="ferdinand", "bergé(2016)" = "bergé", "shimmelmann " = "schimmelmann", "j.m. stone"   =" stone", "r. emsley"= "emsley",   "kristine rømer thomsen" =  "romer thomsen", "isaac et al " ="isaac", "vandijk" ="van dijk", "arsenault "= "arseneault", "auther  et al." = "auther", "miller et al " = "miller", "roessler" = "rössler", "setien-suero "= "setién-suero", "gonzalez-pinto"= "gonzález-pinto",  "martinez-arevalo"= "martínez arévalo", "buchy (2015" = "buchy","auther et al. "= "auther", "degenhart and hall" = "degenhardt and hall", "riecher-roessler" = "riecher-rössler", "arias horjadas" = "arias horcajadas")
 
-unique(merged_df_clean$firstauthor)
+print(sort(merged_df_clean$firstauthor))
+
 
 
 # Rename authors

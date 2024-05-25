@@ -85,7 +85,6 @@ mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mu
 
 
 
-print(sort(unique(evidencemap_studylist$firstauthor)))
 
 evidencemap_studylist <- evidencemap_studylist %>%
 rename(studydesign = node_type)
@@ -135,5 +134,4 @@ write.xlsx(evidencemap_studylist_unique, "02_data/cleandata/evidencemap_studylis
 write.xlsx(evidencemap_studylist, "02_data/cleandata/evidencemap_studylist.xlsx")
 
 
-View(evidencemap_studylist)
 

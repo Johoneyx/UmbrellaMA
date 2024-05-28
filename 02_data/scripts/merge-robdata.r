@@ -105,10 +105,13 @@ Rob_P_R_CC <- Rob_P_R_CC[!apply(is.na(Rob_P_R_CC), 1, all), ]
 
 View(Rob_P_R_CC)
 
+dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS)
 
+# Merge all data tables
+merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE)
 
+# View the merged data table
+View(merged_dt_rob)
 
-
-
-
+write_xlsx(merged_dt_rob, "C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/mergeddata/merged_dt_rob.xlsx")
 

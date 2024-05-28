@@ -105,10 +105,12 @@ Rob_P_R_CC <- Rob_P_R_CC[!apply(is.na(Rob_P_R_CC), 1, all), ]
 
 View(Rob_P_R_CC)
 
-Rob_P_C <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/New_excel_Carolina_09.10_20.05.2024.xlsx", sheet=5,skip=1,))
+Rob_P_C <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/New_excel_Carolina_09.10_20.05.2024.xlsx", sheet=3,skip=1,))
 
-Rob_P_C %>%
-rename("Primary" = Studytype)
+View(Rob_P_C)
+
+Rob_P_C <- Rob_P_C %>%
+rename(Primary = "Study type")
 
 dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS, Rob_P_C)
 

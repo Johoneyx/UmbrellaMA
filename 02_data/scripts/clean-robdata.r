@@ -11,20 +11,26 @@ library(stringr)
 merged_dt_rob <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/mergeddata/merged_dt_rob.xlsx")
 
 merged_dt_rob <- merged_dt_rob  %>% 
-  mutate(First_author = ifelse(str_detect(Primary, "et al"), 
+  mutate(firstauthor = ifelse(str_detect(Primary, "et al"), 
                                str_extract(Primary, ".*(?= et al)"), 
                                str_extract(Primary, ".*(?=\\()")))
 
 
 # Rename "Schibart" to "Schubart"
 merged_dt_rob <- merged_dt_rob %>%
-  mutate(First_author = str_replace_all(First_author, "Schibart", "Schubart"))
+  mutate(First_author = str_replace_all(firstauthor, "Schibart", "Schubart"))
 
 
 # Create a new variable "Year"
 merged_dt_rob <- merged_dt_rob  %>% 
   mutate(Year = str_extract(Primary, "\\b\\d{4}\\b"))
 
-View(merged_dt_rob)
 
+
+merged_dt_rob$studycode <- paste((gsub("\\s", "",merged_dt_rob$firstauthor)), merged_dt_rob$Year,  sep = "_")
+
+
+View(merged_dt_rob) 
+
+write_xlsx(merged_dt_rob, "02_data/cleandata/merged_dt_rob_clean.xlsx")
 

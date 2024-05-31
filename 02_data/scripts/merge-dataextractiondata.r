@@ -8,11 +8,12 @@ library(data.table)
 library(readxl)
 library(stringr)
 
-# Read the data using fread from data.table package
+
 HP_S_KD <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet=1,))
 
 # Remove completely empty rows
 HP_S_KD<- HP_S_KD[!apply(is.na(HP_S_KD), 1, all), ]
+
 #create a variable that includes filename
 HP_S_KD[, dt_name := "HP_S_KD"]
 
@@ -39,7 +40,6 @@ CHR_AR[, dt_name := "CHR_AR"]
 P_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =7))
 P_J<- P_J[!apply(is.na(P_J), 1, all), ]
 P_J[, dt_name := "P_J"]
-
 
 HP_J <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Umbrella_MA_20.05.2024.xlsx", sheet =8))
 HP_J<- HP_J[!apply(is.na(HP_J), 1, all), ]

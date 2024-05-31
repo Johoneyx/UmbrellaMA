@@ -10,7 +10,7 @@ df_studylist_cohort <- df_studylist %>%
 filter(Topic != "Genetic Moderators") 
 
 df_studylist_cohort_unique <- df_studylist_cohort %>%
-  distinct(study_year_psycont, .keep_all = TRUE)
+  distinct(studycode .keep_all = TRUE)
 
 
 View(df_studylist_cohort_unique)
@@ -21,3 +21,5 @@ write.xlsx(df_studylist_cohort, "02_data/cleandata/df_studylist_cohort.xlsx")
 # Write evidencemap_studylist to an Excel file
 write.xlsx(df_studylist_cohort_unique, "02_data/cleandata/df_studylist_cohort_unique.xlsx")
 
+
+View(df_studylist_cohort)

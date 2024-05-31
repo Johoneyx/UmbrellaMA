@@ -21,14 +21,7 @@ evidencemap_studylist_view<- evidencemap_studylist %>%
   arrange(firstauthor)
   
   View(evidencemap_studylist_view)
- 
- 
 
-merged_dt_rob_clean_view <-
-merged_dt_rob_clean %>%
-
-
-View(merged_dt_rob_clean_view)
 
 # Select columns and ensure unique StudyKey
 merged_df_clean_view <- merged_df_clean %>%

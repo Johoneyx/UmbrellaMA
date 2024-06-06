@@ -78,8 +78,14 @@ mutate(firstauthor = str_replace_all(firstauthor, "Schimmelman","Schimmelmann"))
 mutate(firstauthor = str_replace_all(firstauthor, "Arsenault ", "Arseneault")) %>% 
 mutate(firstauthor = str_replace_all(firstauthor, "Arsenault","Arseneault")) %>% 
 mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue")) %>% 
-mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))
-
+mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))%>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Sorbaca", "Sorbara"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Bloeman", "Bloemen"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Kristensenandcadenhead", "Kristensen"))%>%
+mutate(firstauthor = str_replace_all(firstautor, "Oullett-Plamondon", "Ouellett-Plamondon"))%>%
+mutate(firstauthor = str_replace_all(firstautor, "Schimmelmannn", "Schimmelmann"))%>%
+mutate(firstauthor = str_replace_all(firstautor, "Tien & Anthony", "Tien"))%>%
+mutate(firstauthor = str_replace_all(firstautor, "van der Meer and Velthorst", "Van der Meer"))%>%
 
 
 

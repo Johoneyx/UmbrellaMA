@@ -9,19 +9,19 @@ library(purrr)
 library(openxlsx)
 
 #read in different data files of all the populations
-df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =1) %>%
+df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet=1) %>%
   as.data.frame() %>%
   filter(rowSums(is.na(.)) != ncol(.))
 
-df_CHR_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =2) %>%
+df_CHR_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =2) %>%
   as.data.frame() %>%
   filter(rowSums(is.na(.)) != ncol(.))
 
-df_P_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =3) %>%
+df_P_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =3) %>%
   as.data.frame() %>%
   filter(rowSums(is.na(.)) != ncol(.))
 
-df_Mod_map <- read_xlsx("C:/Users/johan/Documents/PhD/Umbrella_Meta-Analysis/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =4) %>%
+df_Mod_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet =4) %>%
   as.data.frame() %>%
   filter(rowSums(is.na(.)) != ncol(.))
 
@@ -82,14 +82,14 @@ mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mu
 mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Sorbaca", "Sorbara"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Bloeman", "Bloemen"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Kristensenandcadenhead", "Kristensen"))%>%
-mutate(firstauthor = str_replace_all(firstautor, "Oullett-Plamondon", "Ouellett-Plamondon"))%>%
-mutate(firstauthor = str_replace_all(firstautor, "Schimmelmannn", "Schimmelmann"))%>%
-mutate(firstauthor = str_replace_all(firstautor, "Tien & Anthony", "Tien"))%>%
-mutate(firstauthor = str_replace_all(firstautor, "van der Meer and Velthorst", "Van der Meer"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Oullett-Plamondon", "Ouellett-Plamondon"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Schimmelmannn", "Schimmelmann"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Tien & Anthony", "Tien"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "van der Meer and Velthorst", "Van der Meer"))
 
 
 
-evidencemap_tidy<- evidencemap_tidy %>%
+evidencemap_tidy <- evidencemap_tidy %>%
 rename(studydesign = node_type)%>%
 mutate(
     Topic = as.factor(Topic),
@@ -102,8 +102,7 @@ mutate(
 
 
 
-evidencemap_tidy <- 
-evidencemap_tidy %>% select(population, Topic, primary_studies, firstauthor, year, reviews, cannabis_use, outcome, studydesign, k, N, "I-Squared", effect_size, effect_size_measure, LCI, HCI, "p-value", significance, group_1_size, Rob_label)
+evidencemap_tidy <- evidencemap_tidy %>% select(population, Topic, primary_studies, firstauthor, year, reviews, cannabis_use, outcome, studydesign, k, N, "I-Squared", effect_size, effect_size_measure, LCI, HCI, "p-value", significance, group_1_size, Rob_label)
 
 
 
@@ -116,13 +115,17 @@ evidencemap_tidy <- evidencemap_tidy %>%
       population == "CHR Population" ~ "CHR",
       population == "Psychosis Population" ~ "P",
       population == "Environmental Moderators" ~ "EnvMod",
-      population == "Genetic  Moderators" ~ "GenMod"), 
-     study_year_psycont = paste(authorww, year, broad_topic, sep = "_"),
-     studycode = paste(authorww, year, sep = "_"),
-    
-  )
+      population == "Genetic  Moderators" ~ "GenMod"))
 
-evidencemap_tidy$studydesign<-tolower(evidencemap_tidy$studydesign)
+  evidencemap_tidy <- evidencemap_tidy %>% 
+  mutate(study_year_psycont = paste(authorww, year, broad_topic, sep = "_"))
+
+  evidencemap_tidy <- evidencemap_tidy %>% 
+  mutate(studycode = paste(authorww, year, sep = "_"))
+  
+
+
+evidencemap_tidy$studydesign <- tolower(evidencemap_tidy$studydesign)
 
 evidencemap_tidy$study_year_psycont<- tolower(evidencemap_tidy$study_year_psycont)
 
@@ -139,16 +142,22 @@ evidencemap_tidy <- evidencemap_tidy %>%
   ))
 
 
-#create the publicationID based on first author year (studycode variable)
-#double-check manually whether publications with different years are actually the same publication (preprints etc)
-#check whether publications investigate the same underlying cohort based on notion-notes
+
 evidencemap_tidy <- evidencemap_tidy %>%
-  mutate(PublicationID = group_indices(., studycode))
+mutate(studycode = str_replace_all(studycode, "schimmelmann_2011", "schimmelmann_2012")) %>%
+mutate(studycode = str_replace_all(studycode, "seddon_2015", "seddon_2016"))%>%
+mutate(studycode = str_replace_all(studycode, "hadden_2016", "hadden_2018"))%>%
+mutate(studycode = str_replace_all(studycode, "emsley_2019", "emsley_2020"))
 
 
-#sort based on firstauthor so that its easier to double-check manually
-evidencemap_tidy <- evidencemap_tidy %>%
-  arrange(firstauthor)
+
+
+ evidencemap_tidy <- evidencemap_tidy %>%
+  group_by(studycode) %>%
+  mutate(PublicationID = cur_group_id())
+
+
+
 
 
 

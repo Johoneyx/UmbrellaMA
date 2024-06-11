@@ -49,6 +49,9 @@ merged_df$study_year_psycont<- paste((gsub("\\s", "", merged_df$firstauthor)), m
 
 merged_df$studycode <- paste((gsub("\\s", "", merged_df$firstauthor)), merged_df$pubyear,  sep = "_")
 
+#after checking studylist data correcting some wrong studycodes
+merged_df <- merged_df %>%
+mutate(studycode, str_replace_all(studycode, "hadden_2026", "hadden_2018"))
 
 # Create dataextraction variable
 merged_df$dataextraction <- ifelse(is.na(merged_df$"extracted by"), merged_df$dt_name, merged_df$"extracted by")

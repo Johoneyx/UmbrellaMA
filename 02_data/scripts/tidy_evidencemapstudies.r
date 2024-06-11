@@ -148,13 +148,22 @@ mutate(studycode = str_replace_all(studycode, "seddon_2015", "seddon_2016"))%>%
 mutate(studycode = str_replace_all(studycode, "hadden_2016", "hadden_2018"))%>%
 mutate(studycode = str_replace_all(studycode, "emsley_2019", "emsley_2020"))%>%
 mutate(studycode = str_replace_all(studycode, "bloemen_2010", "bloemen_2009"))%>%
-mutate(studycode = str_replace_all(studycode,  "bhattacharyya_2020", "patel_2016"))
+mutate(studycode = str_replace_all(studycode,  "bhattacharya_2020", "patel_2016"))
 
 
  evidencemap_tidy <- evidencemap_tidy %>%
   group_by(studycode) %>%
   mutate(PublicationID = cur_group_id())
 
+evidencemap_tidy <- evidencemap_tidy %>%
+  mutate(unique = ifelse(duplicated(PublicationID), "no", "yes"))
+
+#merge data with the manually checked data info
+studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
+
+
+evidencemap_tidy <- evidencemap_tidy %>%
+  left_join(studies_to_check %>% select(studycode, Exclusion_coded, citation), by = "studycode")
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
@@ -167,3 +176,8 @@ select(studycode, `cannabis_use`, outcome, PublicationID)
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
+
+
+
+
+

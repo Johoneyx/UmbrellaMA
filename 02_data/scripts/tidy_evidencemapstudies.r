@@ -176,8 +176,10 @@ studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/
 evidencemap_tidy <- evidencemap_tidy %>%
   left_join(studies_to_check %>% select(studycode,Exclusion_coded,citation), by = "studycode")
 
-
-
+#take the values from the exclusion coded and citation and fill them in in those cases with the same studycode
+evidencemap_tidy <- evidencemap_tidy %>%
+  group_by(studycode) %>%
+  fill(Exclusion_coded, citation, .direction = "downup")
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
@@ -190,8 +192,6 @@ select(studycode, `cannabis_use`, outcome, PublicationID)
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
-
-
 
 names(evidencemap_tidy)
 

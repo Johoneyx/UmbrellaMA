@@ -156,14 +156,28 @@ mutate(studycode = str_replace_all(studycode,  "bhattacharya_2020", "patel_2016"
   mutate(PublicationID = cur_group_id())
 
 evidencemap_tidy <- evidencemap_tidy %>%
-  mutate(unique = ifelse(duplicated(PublicationID), "no", "yes"))
+  mutate(unique = ifelse(duplicated(PublicationID), 1, 0))
+
+  evidencemap_tidy <- evidencemap_tidy %>%
+  mutate(unique_study_pop= ifelse(duplicated(study_year_psycont), 1, 0))
+
+
+
+evidencemap_tidy <- evidencemap_tidy %>%
+ mutate(potstudies = case_when(
+    studydesign == "prospective cohort" ~ 1,
+    studydesign %in% c("longitudinal", "cohort") ~ 1,
+    TRUE ~ 0))
 
 #merge data with the manually checked data info
 studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
 
 
 evidencemap_tidy <- evidencemap_tidy %>%
-  left_join(studies_to_check %>% select(studycode, Exclusion_coded, citation), by = "studycode")
+  left_join(studies_to_check %>% select(studycode,Exclusion_coded,citation), by = "studycode")
+
+
+
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
@@ -179,5 +193,5 @@ write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
 
 
 
-
+names(evidencemap_tidy)
 

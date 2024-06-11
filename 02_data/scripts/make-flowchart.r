@@ -11,39 +11,49 @@ library(Hmisc)
 library(qreport)
 library(consort)
 
-evidencemap_studylist<- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/evidencemap_studylist.xlsx"))
+evidencemap_tidy<- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/evidencemap_tidy.xlsx"))
+
+
+evidencemap_tidy <- evidencemap_tidy %>%
+mutate(id = row_number())
 
 
 
-# Create a new variable "id"
-evidencemap_studylist <- evidencemap_studylist %>%
-  mutate(id = row_number())
 
-evidencemap_studylist <- evidencemap_studylist %>%
-  mutate(id = row_number(),
-         potentially_prospective_longitudinal = ifelse(studydesign %in% c("prospective cohort", "longitudinal", "cross-sectional and longitudinal", "case-only", "cohort"), "yes", "no"))
+evidencemap_tidy[,.q(unique, potstudies, fin, revpop) :=
+.(ifelse(unique == 1, 1, NA),
+ifelse(potstudies == 1 & unique == 1, 1, NA),
+ifelse(potstudies == 1 & is.na(Exclusion_coded) & unique == 1, 1, NA),
+ifelse(potstudies == 1 & is.na(Exclusion_coded) & unique_study_pop == 1, broad_topic, NA)
+)]
 
-# Create a new variable "unique"
-evidencemap_studylist <- evidencemap_studylist %>%
-  mutate(unique = ifelse(duplicated(studycode), 0, 1))
+evidencemap_tidy[, exc := seqFreq(
+  "not prospective longitudinal" = Exclusion_coded == "not prospective longitudinal", 
+  "outcome not relevant" = Exclusion_coded == "no relevant outcome", 
+  "duplicated publication of same cohortstudy" = Exclusion_coded =="double-publication", 
+  noneNA =TRUE
+)]
 
 
+eo  <- attr(evidencemap_tidy[, exc], 'obs.per.numcond')
+mult <- paste0('1, 2, ≥3 exclusions: n=',
+                eo[2], ', ',
+                eo[3], ', ',
+                eo[-(1:3)]  )
 
-evidencemap_studylist[, pop := seqFreq("HP" = broad_topic == "HP",
-"CHR" = broad_topic == "CHR",
-"P" = broad_topic == "P", noneNA=TRUE)]
 
-evidencemap_studylist[, potstudies := seqFreq("prospective cohort" = (studydesign == "prospective cohort"),                                   "longitudinal" = (studydesign == "longitudinal" | studydesign == "cross-sectional and longitudinal"),
-                                              "cohort" = (studydesign == "cohort"), noneNA=TRUE)]
 
 consort_plot(
-evidencemap_studylist,
+evidencemap_tidy,
 orders = c(id = "All primary studies of all systematic reviews",
-pop = "divided by population",
 unique = "duplicate studies removed",
-potentially_prospective_longitudinal ="potentially prospective longitudinal",
-potstudies ="potential prospective cohort studies"),
-side_box = c("pop", "potstudies"),
-labels = c("1" = "Umbrella Review Groening et al", "2" ="Studies identified")
-)
+revpop = "studies per topic",
+potstudies ="potentially prospective longitudinal",
+exc = "Excluded",
+fin = "final studies",
+revpop = "studies per topic"
+),
+side_box = "exc", 
+allocation = "revpop",
+labels = c("1" = "Umbrella Review Groening et al", "2" ="Studies identified"))
 

@@ -81,8 +81,8 @@ mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue")) %
 mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))%>% 
 mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Sorbaca", "Sorbara"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Bloeman", "Bloemen"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Kristensenandcadenhead", "Kristensen"))%>%
-mutate(firstauthor = str_replace_all(firstauthor, "Oullett-Plamondon", "Ouellett-Plamondon"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Kristensen and Cadenhead", "Kristensen"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Oullett-Plamondon", "Ouellet-Plamondon"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Schimmelmannn", "Schimmelmann"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Tien & Anthony", "Tien"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "van der Meer and Velthorst", "Van der Meer"))
@@ -142,23 +142,18 @@ evidencemap_tidy <- evidencemap_tidy %>%
   ))
 
 
-
 evidencemap_tidy <- evidencemap_tidy %>%
 mutate(studycode = str_replace_all(studycode, "schimmelmann_2011", "schimmelmann_2012")) %>%
 mutate(studycode = str_replace_all(studycode, "seddon_2015", "seddon_2016"))%>%
 mutate(studycode = str_replace_all(studycode, "hadden_2016", "hadden_2018"))%>%
-mutate(studycode = str_replace_all(studycode, "emsley_2019", "emsley_2020"))
-
-
+mutate(studycode = str_replace_all(studycode, "emsley_2019", "emsley_2020"))%>%
+mutate(studycode = str_replace_all(studycode, "bloemen_2010", "bloemen_2009"))%>%
+mutate(studycode = str_replace_all(studycode,  "bhattacharyya_2020", "patel_2016"))
 
 
  evidencemap_tidy <- evidencemap_tidy %>%
   group_by(studycode) %>%
   mutate(PublicationID = cur_group_id())
-
-
-
-
 
 
 # Write evidencemap_studylist to an Excel file

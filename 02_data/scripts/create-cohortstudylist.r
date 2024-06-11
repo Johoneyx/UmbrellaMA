@@ -1,14 +1,22 @@
-library(openxlsx)
+library(readxl)
+library(tidyverse)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(data.table)
+library(readxl)
+library(stringr)
+
 
 # Read the Excel file
 evidencemap_tidy <- as.data.frame(read.xlsx("02_data/cleandata/evidencemap_tidy.xlsx"))
 
 
 df_studylist_cohort <- evidencemap_tidy %>%
-  filter(studydesign %in% c("longitudinal", "cohort", "prospective cohort", "cross-sectional and longitudinal")) #%>%
+  filter(potstudies == 1 & excluded !=1)
 #filter(Topic != "Genetic Moderators") 
 
-View(evidencemap_tidy)
 
 # Write evidencemap_studylist to an Excel file
 write.xlsx(df_studylist_cohort, "02_data/cleandata/df_studylist_cohort.xlsx")

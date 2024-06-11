@@ -181,6 +181,10 @@ evidencemap_tidy <- evidencemap_tidy %>%
   group_by(studycode) %>%
   fill(Exclusion_coded, citation, .direction = "downup")
 
+evidencemap_tidy <- evidencemap_tidy %>%
+mutate(excluded = ifelse(!is.na(Exclusion_coded), 1, 0))
+
+
 # Write evidencemap_studylist to an Excel file
 write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
 
@@ -193,5 +197,7 @@ select(studycode, `cannabis_use`, outcome, PublicationID)
 # Write evidencemap_studylist to an Excel file
 write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
 
-names(evidencemap_tidy)
+
+
+
 

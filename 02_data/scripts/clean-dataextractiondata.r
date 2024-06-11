@@ -68,15 +68,13 @@ merged_df$dataextraction <- recode(merged_df$dataextraction,
 
 merged_df_clean <- merged_df %>% filter(!is.na(firstauthor))
 
-
-
 write_xlsx(merged_df_clean, "02_data/cleandata/merged_df_clean.xlsx")
 
 
 
+names(merged_df_clean)
 
-
-
+table(as.factor(merged_df_clean$"cannabis level of use"))
 
 
 

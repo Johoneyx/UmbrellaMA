@@ -16,113 +16,117 @@ studylist_cohort <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/
 merged_df_clean <- merged_df_clean %>% 
 mutate(relevant = ifelse(studycode %in% studylist_cohort$studycode, 1, 0 ))
 
-table(merged_df_clean$relevant)
 
 df_plcohort <- merged_df_clean %>% 
   filter(relevant == 1)
 
-names(df_plcohort)
+colnames(df_plcohort) <- gsub(" ", "_", colnames(df_plcohort))
+
+
 
 #clean cannabis use data
 
 #clean lifetime variable 
-df_plcohort$"lifetime cannabis use" <-  tolower(df_plcohort$"lifetime cannabis use")
-
-
-sort(levels(as.factor(df_plcohort$"lifetime cannabis use")))
-
-df_plcohort <- df_plcohort %>%
-  mutate(`lifetime cannabis use` = recode(`lifetime cannabis use`, "age of use" = "age of onset", "current cannabis use" = "current", "current use"="current", "last 12-month use" = "last 12 months","last 6-month use"= "last 6 months","last year use"= "last 12 months", "lifetime cannabis use" = "lifetime", "lifetime use" = "lifetime", "past month" = "last month", "past 30 days cannabis use" = "last month", "past year use" = "last 12 months", "prior six months" = "last 6 months", "recent use (last month)" = "last month", "last 12-month cannabis use" = "last 12 months", "cannabis use in previous 90 days" = " last 3 months", "last month use" = "last month"  ))
-         
-
-levels(as.factor(df_plcohort$"lifetime cannabis use"))
-
-
+df_plcohort$"lifetime_cannabis_use" <-  tolower(df_plcohort$"lifetime_cannabis_use")
 
 
 df_plcohort <- df_plcohort %>%
-  mutate(`cannabis level of use` = recode(`cannabis level of use`, ocassiaonl = "occasional"))
-  
-#seeing it with the other cannabis-related variables together will can let me know if they are talking about current or lifetime use 
-#find all values that have time something following and ersetze diese durch (times)
-#ersetze alle cannabis_use durch use_
+  mutate(`lifetime_cannabis_use` = recode(`lifetime_cannabis_use`, "age of use" = "age of onset", "current cannabis use" = "current", "current use"="current", "last 12-month use" = "last year","last 6-month use"= "last six months", "lifetime_cannabis_use" = "lifetime", "lifetime use" = "lifetime", "past month" = "last month", "past 30 days cannabis use" = "last month", "past year use" = "last year use", "prior six months" = "last six months", "recent use (last month)" = "last month", "last 12-month cannabis use" = "last year", "cannabis use in previous 90 days" = " last three months", "last month use" = "last month"))
+    
+  df_plcohort <- df_plcohort %>%
+  mutate(cannabis_all = str_c(lifetime_cannabis_use, cannabis_level_of_use,  sep = " "))
 
-#clean level of use variable
-df_plcohort$"cannabis level of use" <-  tolower(df_plcohort$"cannabis level of use")
+
+df_plcohort$cannabis_all <-  tolower(df_plcohort$cannabis_all)
 
 df_plcohort <- df_plcohort %>%
-# Create level_coded variable based on "cannabis level of use"
-  mutate(level_coded = `cannabis level of use`) %>%
-  # Remove all round brackets
-  mutate(level_coded = str_replace_all(level_coded, "\\(|\\)", ""))%>%
+  mutate(`cannabis_all` = str_replace_all(`cannabis_all`, ("ocassiaonl|ocassiaonl"), "occasional"))
+
+
+df_plcohort <- df_plcohort %>%
  # Replace "less than" with "<" and "at least" with ">"
-  mutate(level_coded = str_replace_all(level_coded, "less than", "<")) %>%
-  mutate(level_coded = str_replace_all(level_coded, "at least", ">="))%>%
+  mutate(cannabis_all = str_replace_all(cannabis_all, "less than", "<")) %>%
+  mutate(cannabis_all = str_replace_all(cannabis_all, "at least", ">="))%>%
 # Replace "per week" with "/week" and "prior to" with "<"
-  mutate(level_coded = str_replace_all(level_coded, "per week", "/week")) %>%
-  mutate(level_coded = str_replace_all(level_coded, "prior to", "<"))
+  mutate(cannabis_all = str_replace_all(cannabis_all, "per week", "/week")) %>%
+  mutate(cannabis_all = str_replace_all(cannabis_all, "prior to", "<"))
 # Replace "weekly" with "/week", "monthly" with "/month", and "daily" with "/day"
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "weekly", "1/week")) %>%
-  mutate(level_coded = str_replace_all(level_coded, "monthly", "1/month")) %>%
-  mutate(level_coded = str_replace_all(level_coded, "daily", "1/day")) %>%
-  # Replace number not preceded by "onset " or "age " with [number], and number preceded by "onset " or "age " with *number*
-  mutate(level_coded = ifelse(str_detect(level_coded, "(?<!onset |age )([0-9]+-?[0-9]*)"), str_replace_all(level_coded, "([0-9]+-?[0-9]*)", "[\\1]"), 
-    str_replace_all(level_coded, "(onset |age )([0-9]+)", "*\\2*"))) 
+  mutate(cannabis_all = str_replace_all(cannabis_all, "weekly", "1/week")) %>%
+  mutate(cannabis_all = str_replace_all(cannabis_all, "monthly", "1/month")) %>%
+  mutate(cannabis_all = str_replace_all(cannabis_all, "every day", "1/day"))%>%
+   mutate(cannabis_all = str_replace_all(cannabis_all, "daily", "1/day"))
 
-# Include comparison operator in brackets if it precedes a number that is already in brackets
-# If it's followed by a number in brackets, delete the brackets around the number
+
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "(>|>=|<=|<)\\s*\\[(\\d+)\\]", "[\\1 \\2]"))
+  # Replace specified words with *word*
+  mutate(cannabis_all = str_replace_all(cannabis_all, "(lifetime| ever |current|early|late|onset|by age 14|by age 15|by age 16| by age 18| at age |last year|last three months|last six months|prior|last 12 months|prior to age 14|prior to age 15|age of onset|last month|15 years or less| 16 years or more|at age 17-18|at age 20-21|before 15)", "*\\1*"))
 
 
-# Replace "lifetime", "ever", "current" with *word*
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "(lifetime|ever|current|early|late)", "*\\1*"))
+  mutate(cannabis_all = gsub("(\\b(?!14\\b|15\\b|16\\b|18\\b|17-18\\b|20-21\\b)[0-9]+\\b)(?<!T )", "[\\1]", cannabis_all, perl = TRUE)) %>%
+  mutate(cannabis_all = gsub("(\\b(?!17-18\\b|20-21\\b)([0-9]+-[0-9]+)\\b)(?<!T )", "[\\1]", cannabis_all, perl = TRUE))
+
 
 # Replace "frequent", "infrequent" with [word]
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "(frequent|infrequent|occasional|abuse or dependence|abuse| abuse / dependence|dependence|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud)", "[\\1]"))
+  mutate(cannabis_all = str_replace_all(cannabis_all, "(frequent|infrequent|occasional|abuse or dependence|abuse| abuse / dependence|dependence|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud|without impairment|with cannabis-induced aps|/week|/day|/month|/year|years|times|days|sistematic|almost|<|>|=)", "[\\1]"))
 
-# Replace "times", "days" with (word)
+
+
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "(times|days|years)", "(\\1)"))
+  mutate(recall_cannabis_use_timeframe = sapply(str_extract_all(cannabis_all, "\\*([^*]+)\\*"), function(x) paste(x, collapse = " ")))
 
-# Replace "once" with "[1](time)"
+View(as.data.frame(df_plcohort$recall_cannabis_use_timeframe))
+# View the result
+
 df_plcohort <- df_plcohort %>%
-  mutate(level_coded = str_replace_all(level_coded, "once", "[1](time)"))
+  mutate(cannabis_use_frequency = sapply(str_extract_all(cannabis_all, "\\[([^\\]]+)\\]"), function(x) paste(x, collapse = " ")))
 
-#clean controlgroup variable 
-sort(levels(as.factor(df_plcohort$"level_coded")))
-
-
+# View the result
+View(as.data.frame(df_plcohort$cannabis_use_frequency))
 
 
-names(df_plcohort)
+table_lifetime <- as.data.frame(table(as.factor(df_plcohort$recall_cannabis_use_timeframe)))
+filtered_table_lifetime <- filter(table_lifetime, Freq > 3)
 
-#clean cannabis measure variable
-sort(levels(as.factor(df_plcohort$"cannabis measure")))
+View(filtered_table_lifetime)
+
+
+table_freq <- as.data.frame(table(as.factor(df_plcohort$cannabis_use_frequency)))
+filtered_table_freq <- filter(table_freq, Freq > 3)
+
+View(filtered_table_freq)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 df_plcohort$"cannabis measure"<-tolower(df_plcohort$"cannabis measure")
 
-#clean cannabis measure variable
-#sort(levels(as.factor(df_plcohort$"cannabis measure")))
-
-##df_plcohort <- df_plcohort %>%
- #mutate(measure_coded ="cannabis measure") %>%
-  #mutate(measure_coded = str_replace_all#(measure_coded, "(|days|years)", "(\\1)"))
-
-
-  df_plcohort$"cannabis measure"<-tolower(df_plcohort$"cannabis measure")
-
   df_plcohort <- df_plcohort %>%
- mutate(measure_coded ="cannabis measure") %>%
-
-# Replace all spaces in column names with underscores
-# Replace all spaces in column names with underscores
-colnames(df_plcohort) <- gsub(" ", "_", colnames(df_plcohort))
-
-sort(levels(as.factor(df_plcohort$outcome)))
+ mutate(measure_coded ="cannabis_measure") %>%
+  
 
   
 df_plcohort <- df_plcohort %>%
@@ -190,11 +194,10 @@ df_plcohort <- df_plcohort %>%
   #view levels as a table so that you can decide which expression to take and which values you have to rename
 View(as.data.frame(table(as.factor(df_plcohort$outcome_coded))))
 
-# Load the necessary package
-library(dplyr)
 
 # Create a table and filter it
 table_data <- as.data.frame(table(as.factor(df_plcohort$outcome_coded)))
+
 filtered_table_data <- filter(table_data, Freq > 5)
 
 # Display the filtered table
@@ -214,14 +217,7 @@ filtered_table_data <- filter(table_data, Freq < 5)
 # Display the filtered table
 View(filtered_table_data)
 
-# Create a table from the outcome_coded column
-table_data <- as.data.frame(table(as.factor(df_plcohort$country)))
 
-filtered_table_data <- filter(table_data, Freq > 3)
-# Display the filtered table
-View(filtered_table_data)
-
-names(df_plcohort)
 
 
 #variables who might have info psychosis type
@@ -239,7 +235,8 @@ names(df_plcohort)
 #comparision(control-group)
 #cannabis_measure
 #recall?
-
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(icd-8|psychosis onset|psychosis onset|non-affective psychosis)", "development of a psychotic disorder"))
 
 #factors accounted for 
 #baseline_differences_between_group?
@@ -260,6 +257,8 @@ names(df_plcohort)
 #followup_duration
 #study_type
 #survival_curve?
+
+
 
 #sample_size_(total_n)
 #total_n 

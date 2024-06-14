@@ -118,7 +118,7 @@ dev.off()
 
 
 
-
+write_xlsx(merged_df_clean, "02_data/cleandata/cohort_df_clean.xlsx")
 
 
 
@@ -284,5 +284,5 @@ df_plcohort <- df_plcohort %>%
 #citation
 #title
  
-
+write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")
 

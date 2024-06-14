@@ -42,6 +42,7 @@ mult <- paste0('1, 2, ≥3 exclusions: n=',
                 eo[-(1:3)]  )
 
 
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/consort_plot.pdf", width = 11, height = 8.5)
 
 consort_plot(
 evidencemap_tidy,
@@ -57,3 +58,4 @@ allocation = "revpop",
 labels = c("1" = "Umbrella Review Groening et al", "2" ="Studies identified")
 )
 
+dev.off()

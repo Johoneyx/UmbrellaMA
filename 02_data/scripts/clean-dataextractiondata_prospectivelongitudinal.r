@@ -7,7 +7,7 @@ library(purrr)
 library(data.table)
 library(readxl)
 library(stringr)
-
+library(gridExtra)
 
 merged_df_clean <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/merged_df_clean.xlsx"))
 
@@ -99,10 +99,22 @@ filtered_table_freq <- filter(table_freq, Freq > 3)
 View(filtered_table_freq)
 
 
+# Convert the data frame to a grid table
+table_grob<- gridExtra::tableGrob(filtered_table_freq)
+
+# Save the table as a PDF
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/filtered_table_freq.pdf")
+grid::grid.draw(table_grob)
+dev.off()
 
 
+# Convert the data frame to a grid table
+table_grob<- gridExtra::tableGrob(filtered_table_lifetime)
 
-
+# Save the table as a PDF
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/filtered_table_lifetime.pdf")
+grid::grid.draw(table_grob)
+dev.off()
 
 
 

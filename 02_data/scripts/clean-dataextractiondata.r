@@ -59,12 +59,7 @@ merged_df$dataextraction <- ifelse(is.na(merged_df$"extracted by"), merged_df$dt
 
 # Recode values in the dataextraction column
 merged_df$dataextraction <- recode(merged_df$dataextraction, 
-                                   "HP_S_KD" = "Kaito & David", 
-                                   "HP_D_KR" = "Kaito and Riccardo", 
-                                   "CHR_S_KD" = "Kaito and David", 
-                                   "P_J" = "Johanna", 
-                                   "HP_J" = "Johanna", 
-                                   "P_KC" = "Kaito and Carolina")
+"HP_S_KD" = "Kaito & David","HP_D_KR" = "Kaito & Riccardo", "CHR_S_KD" = "Kaito & David","CHR_T_KD" = "Kaito & David", "P_J" = "Johanna", "HP_J" = "Johanna", "P_KC" = "Kaito & Carolina")
 
 merged_df_clean <- merged_df %>% filter(!is.na(firstauthor))
 
@@ -72,9 +67,6 @@ write_xlsx(merged_df_clean, "02_data/cleandata/merged_df_clean.xlsx")
 
 
 
-names(merged_df_clean)
-
-table(as.factor(merged_df_clean$"cannabis level of use"))
 
 
 

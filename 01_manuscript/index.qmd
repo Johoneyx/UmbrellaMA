@@ -1,0 +1,19 @@
+---
+title: Umbrella Meta-Analysis Cannabis use and psychosis related outcomes
+authors:
+  - name: Johanna Manja Groening
+    affiliation: Institute of Psychology, Psychiatry and Neuroscience, King's College London
+    roles: writing, 
+    corresponding: true
+bibliography: references.bib
+---
+
+## INTRODUCTION ##
+
+## METHODS ##
+
+## RESULTS ##
+
+##DISCUSSION ##
+
+

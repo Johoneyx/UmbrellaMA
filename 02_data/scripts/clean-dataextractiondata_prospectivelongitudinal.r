@@ -50,13 +50,9 @@ df_plcohort <- df_plcohort %>%
   )))
 
 
-View(df_plcohort)
-
 #combine data in new variable to get all info
-
 df_plcohort <- df_plcohort %>%
 mutate(cannabis_all = str_c(lifetime_cannabis_use, cannabis_level_of_use,  sep = " "))
-
 
 df_plcohort$cannabis_all <-  tolower(df_plcohort$cannabis_all)
 
@@ -82,7 +78,7 @@ df_plcohort <- df_plcohort %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "monthly", "1/month")) %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "once a month", "1/month")) %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "every day", "1/day"))%>%
-   mutate(cannabis_all = str_replace_all(cannabis_all, "daily", "1/day"))
+  mutate(cannabis_all = str_replace_all(cannabis_all, "daily", "1/day"))
 
 
 #mark cannabis use time-frame related words with *word*
@@ -170,101 +166,231 @@ filtered_table_comp <- filter(table_comp, Freq > 3)
 View(filtered_table_comp)
 
 
-
-write_xlsx(merged_df_clean, "02_data/cleandata/cohort_df_clean.xlsx")
-
-df_plcohort$"cannabis measure"<-tolower(df_plcohort$"cannabis measure")
-
-  df_plcohort <- df_plcohort %>%
- mutate(measure_coded ="cannabis_measure") %>%
   
+#clean outcome variable 
 
-  
-df_plcohort <- df_plcohort %>%
- mutate(outcome_coded= outcome) 
 
+df_plcohort$outcome <- tolower(df_plcohort$outcome)
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(outcome coded, "(symtoms|symtomes|symptomes|symtpoms|symtomes|symptomes)", "symptoms"))
-
+ mutate(outcome_clean= outcome) 
 
 # Print words starting with "sym" 
 df_plcohort %>%
-  filter(str_detect(outcome_coded, "\\bschiz\\w*")) %>%
- pull(outcome_coded) %>%
+  filter(str_detect(outcome_clean, "\\bsym\\w*")) %>%
+ pull(outcome_clean) %>%
  unique() %>%
  str_split(" ") %>%
   unlist() %>%
- .[str_detect(., "\\bschiz\\w*")] %>%
+ .[str_detect(., "\\bsym\\w*")] %>%
+ unique() %>%
+ print()
+
+#correct all words with symp that are spelled wrong
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_clean = str_replace_all(outcomeclean, "(symtoms|symtomes|symtpoms)", "symptoms"))
+
+#see if it worked
+df_plcohort %>%
+  filter(str_detect(outcome_clean, "\\bsym\\w*")) %>%
+ pull(outcome_clean) %>%
+ unique() %>%
+ str_split(" ") %>%
+  unlist() %>%
+ .[str_detect(., "\\bsym\\w*")] %>%
+ unique() %>%
+ print()
+
+
+
+
+#see if it worked
+df_plcohort %>%
+  filter(str_detect(outcome_clean, "\\bsym\\w*")) %>%
+ pull(outcome_clean) %>%
+ unique() %>%
+ str_split(" ") %>%
+  unlist() %>%
+ .[str_detect(., "\\bsym\\w*")] %>%
+ unique() %>%
+ print()
+
+#i repeated it for other comon syllabus such as dim, neg, pos etc.
+
+# Print words end with "phrenia" 
+df_plcohort %>%
+  filter(str_detect(outcome_clean, "\\w*phrenia\\b")) %>%
+ pull(outcome_clean) %>%
+ unique() %>%
+ str_split(" ") %>%
+  unlist() %>%
+ .[str_detect(., "\\w*phrenia\\b")] %>%
  unique() %>%
  print()
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(symptoms|symtpoms|symtoms|symtomes)", "symptoms"))
-
-
-  # Print words starting with "sym" 
-df_plcohort %>%
-  filter(str_detect(outcome_coded, "\\bgen\\w*")) %>%
- pull(outcome_coded) %>%
- unique() %>%
- str_split(" ") %>%
-  unlist() %>%
- .[str_detect(., "\\bgen\\w*")] %>%
- unique() %>%
- print()
-
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(dimensios|dimention)", "dimension"))%>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(ngtaive|negtaive)", "negative"))
-
-
-table(as.factor(df_plcohort$outcome_coded))
-
+  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(dimensios|dimention)", "dimension"))%>%
+  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(ngtaive|negtaive)", "negative"))%>%
+  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(schziphrenia|negtaive)", "negative"))
 
 df_plcohort %>%
-  filter(str_detect(outcome_coded, "\\bpsych\\w*")) %>%
-  pull(outcome_coded) %>%
+  filter(str_detect(outcome_clean, "\\bpsych\\w*")) %>%
+  pull(outcome_clean) %>%
   unique() %>%
   print()
+
+# Select and view the specified variables
+df_selected <- df_plcohort %>%
+  select(outcome_clean, outcome_measure)
+
+View(df_selected)
+
+df_outcome_stats <- df_plcohort %>%
+  select(outcome_clean, outcome_measure, outcome_measure_coded,mean_c,sd_c, mean_nc, sd_nc, or, lci_or,uci_or,aor,lci_aor,uci_aor,cu_p,ncu_p,cu_np,ncu_np)
+
+View(df_outcome_stats)
+
+df_plcohort <- df_plcohort %>%
+mutate("outcome_measure_clean"= toupper(outcome_measure))
+
+
+
+
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_measure_coded = case_when(
+    str_detect(outcome_measure_clean, "SOPS") ~ "SOPS",
+    str_detect(outcome_measure_clean, "SIPS") ~ "SIPS",
+    str_detect(outcome_measure_clean, "YSR") ~ "YSR",
+    str_detect(outcome_measure_clean, "KSADS") ~ "KSADS",
+    str_detect(outcome_measure_clean, "BECK") ~ "BAI",
+    str_detect(outcome_measure_clean, "CAPE") ~ "CAPE",
+    str_detect(outcome_measure_clean, "PHYSICAL ANHEDONIA") ~ "PA",
+     str_detect(outcome_measure_clean, "SOCIAL ANHEDONIA") ~ "SA",
+      str_detect(outcome_measure_clean, "CIDI") ~ "CIDI",
+       str_detect(outcome_measure_clean, "DIA-X") ~ "DIA-X",
+        str_detect(outcome_measure_clean, "DIS") ~ "DIS",
+        str_detect(outcome_measure_clean, "K-SADS_PL") ~ "K-SADS_PL",
+        str_detect(outcome_measure_clean, "GAF") ~ "GAF",
+        str_detect(outcome_measure_clean, "FUPPHS") ~ "FUPPHS",
+        str_detect(outcome_measure_clean, "GAF") ~ "GAF",
+        str_detect(outcome_measure_clean, "HAMILTON") ~ "HDRS",
+        str_detect(outcome_measure_clean, "ICD") ~ "ICD",
+        str_detect(outcome_measure_clean, "LIFE CHAT") ~ "Life Chart Method",
+        str_detect(outcome_measure_clean, "LIFE CHART") ~ "Life Chart Method",
+        str_detect(outcome_measure_clean, "SCL-90") ~ "SCL-90",
+        str_detect(outcome_measure_clean, "PACE") ~ "PACE",
+        str_detect(outcome_measure_clean, "PETERS") ~ "PDI",
+        str_detect(outcome_measure_clean, "PLIKS") ~ "PLIKS",
+str_detect(outcome_measure_clean, "POPS") ~ "POPS",
+str_detect(outcome_measure_clean, "SOPS") ~ "SOPS",
+str_detect(outcome_measure_clean, "SIPS") ~ "SIPS",
+str_detect(outcome_measure_clean, "PROD") ~ "PROD-Screen",
+str_detect(outcome_measure_clean, "SANS") ~ "SANS",
+str_detect(outcome_measure_clean, "SPIKE") ~ "SPIKE",
+str_detect(outcome_measure_clean, "YSR") ~ "YSR",
+str_detect(outcome_measure_clean, "BPRS") ~ "BPRS",
+str_detect(outcome_clean, "icd") ~ "ICD",
+str_detect(outcome_measure_clean, "DSM") ~ "DSM",
+str_detect(outcome_measure_clean, "PSQ") ~ "PSQ",
+str_detect(outcome_measure_clean, "SCID") ~ "SCID",
+str_detect(outcome_measure_clean, "CAARMS") ~ "CAARMS",
+str_detect(outcome_measure_clean, "SELF-REPORT QUESTIONNAIRE") ~ "SELF-REPORT QUESTIONNAIRE",
+str_detect(outcome_measure_clean, "BSABS") ~ "BSABS",
+str_detect(outcome_measure_clean, "YUNG ET AL") ~ "CAARMS",
+str_detect(outcome_measure_clean, "PANSS") ~ "PANNS",
+str_detect(outcome_measure_clean, "PANNS") ~ "PANNS",
+str_detect(outcome_measure_clean, "SAPS") ~ "SAPS",
+str_detect(outcome_measure_clean, "INTERVIEW") ~ "Interview",
+str_detect(outcome_measure_clean, "NOT CLEAR") ~ "Not clear",
+str_detect(outcome_measure_clean, "YMRS") ~ "YMRS",
+str_detect(outcome_measure_clean, "NUMBER OF HOSPITAL READMISSIONS") ~ "Number of Hospital Readmissions",
+str_detect(outcome_measure_clean, "MEAN NUMBER OF HOSPITALIZATIONS") ~ "Number of Hospitalizations",
+str_detect(outcome_measure_clean, "NUMBER OF HOSPITALIZATION DAYS") ~ "Number of Hospitalization days",
+str_detect(outcome_measure_clean, "SELF-REPORTED PSYCHOTIC ACUTE EPISODE") ~ "Number of Hospitalization days",
+str_detect(outcome_measure_clean, "BREAKTHROUGH PSYCHOTIC SYMPTOMS") ~ "BAMM",
+str_detect(outcome_measure_clean, " ADMISSION TO A PSYCHIATRIC INPATIENT UNIT AFTER EXACERBATION OF SYMTOMS") ~ "Admission Inpatient",
+str_detect(outcome_measure_clean, "NUMER OF DAYS IN SUPPORTED PSYCHIATRIC HOUSING") ~ "Number of suppor",
+str_detect(outcome_measure_clean, "ANY HOSPITAL ADMISSION") ~ "Any Hospital Admission",
+str_detect(outcome_measure_clean, "ANY HOSPITAL ADMISSION") ~ "Any Hospital Admission",
+str_detect(outcome_measure_clean, "ANY HOSPITAL ADMISSION") ~ "Any Hospital Admission",
+str_detect(outcome_measure_clean, "ANY HOSPITAL ADMISSION") ~ "Any Hospital Admission",
+str_detect(outcome_measure_clean, "ANY HOSPITAL ADMISSION") ~ "Any Hospital Admission",
+    TRUE ~ NA_character_ 
+  ))
+
+selectionNA <-df_plcohort %>%
+select(outcome_clean,outcome_measure_coded)
+
+selectionNA <-df_plcohort %>%
+filter(is.na(outcome_measure_coded))%>%
+select(outcome_clean,outcome_measure_clean,outcome_measure_coded)%>%
+View()
+
+#kind of psychotic symptoms and kind of relapse 
+df_plcohort <- df_plcohort %>%
+  mutate(suboutcome = case_when(
+    str_detect(outcome_clean, ) ~ ,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_coded = str_replace_all("outcome_coded", "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))%>% 
+  mutate(outcome_coded = str_replace_all("outcome_coded", "negative psychotic symptoms of psychotic symptoms", "negative psychotic symptoms"))
+
+
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_coded = str_replace_all("outcome_coded", "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))
+
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_coded = str_replace_all("outcome_coded", "(positive dimension|positive psychosis|positive schziphrenia symptoms|positive symptoms)", "positive psychotic symptoms"))
 
 #view levels as a table so that you can decide which expression to take and which values you have to rename
 View(as.data.frame(table(as.factor(df_plcohort$outcome_coded))))
 
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))%>% 
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "negative psychotic symptoms of psychotic symptoms", "negative psychotic symptoms"))
+selection <-df_plcohort[df_plcohort$outcome_coded,]
 
-
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))
+View(selection)
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(positive dimension|positive psychosis|positive schziphrenia symptoms|positive symptoms)", "positive psychotic symptoms"))
-
-  #view levels as a table so that you can decide which expression to take and which values you have to rename
-View(as.data.frame(table(as.factor(df_plcohort$outcome_coded))))
-
-
-# Create a table and filter it
-table_data <- as.data.frame(table(as.factor(df_plcohort$outcome_coded)))
-
-filtered_table_data <- filter(table_data, Freq > 5)
-
-# Display the filtered table
-View(filtered_table_data)
-
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(schizophrenia symptoms (0-58) |mean psychotic symptoms)", "psychotic symptoms"))
+  mutate(outcome_coded = str_replace_all(outcome_coded, "(schizophrenia symptoms (0-58) |mean psychotic symptoms)", "grandiosity"|"hallucinations"|"disorganized symptoms"|"general symptoms"|"any cidi hallucination item"|"paranoia"|"first-rank)", "psychotic symptoms"))
 
 
 df_plcohort <- df_plcohort %>%
   mutate(outcome_coded = str_replace_all(`outcome_coded`, "(icd-8|psychosis onset|psychosis onset|non-affective psychosis)", "development of a psychotic disorder"))
 
+
+df_plcohort <- df_plcohort %>%
+  mutate(outcome_coded = str_replace_all('outcome_coded', "(chr+", "chr state"))
+
 # Create a table from the outcome_coded column
 table_data <- as.data.frame(table(as.factor(df_plcohort$outcome_coded)))
 
-filtered_table_data <- filter(table_data, Freq < 5)
+filtered_table_data <- filter(table_data, Freq > 5)
 # Display the filtered table
 View(filtered_table_data)
 
@@ -280,23 +406,16 @@ View(filtered_table_data)
 #dt_name
 #kind_of_psychosis
 
+df_cohort <- df_plcohort %>%
+select(study_year_psycont,fep_vs_chronic, target_population,cohort,cohort_more_detail,diagnostic_tool,kind_of_psychosis,outcome, outcome_measure, outcome_clean, outcome_measure, outcome_measure_coded,mean_c,sd_c, mean_nc, sd_nc, or, lci_or,uci_or,aor,lci_aor,uci_aor,cu_p,ncu_p,cu_np,ncu_np)
+
+View(df_cohort)
 
 
-  
- 
+df_pop<- df_plcohort %>%
+select(target_population,population)
 
-# Create a table from the outcome_coded column
-table_comparision <- as.data.frame(table(as.factor(df_plcohort$comparision_coded)))
-
-filtered_table_comparision <- filter(table_comparision, Freq < 3)
-
-View(table_comparision)
-
-
-
-
-
-
+View(df_pop)
 #factors accounted for 
 #baseline_differences_between_group?
 #factors_accounted_for
@@ -317,7 +436,30 @@ View(table_comparision)
 #study_type
 #survival_curve?
 
+View(as.data.frame(table(df_plcohort$population)))
+View(as.data.frame(table(df_plcohort$target_population)))
 
+df_plcohort <- df_plcohort %>%
+    mutate(population = case_when(
+    str_detect(target_population, "CHR") ~ "CHR",
+    str_detect(target_population, "HP") ~ "HP",
+    str_detect(target_population, "P") ~ "P",
+    str_detect(target_population, "APS") ~ "P",
+    str_detect(target_population, regex("Chronic", ignore_case = TRUE)) ~ "P",
+    str_detect(target_population, "Adolescents") ~ "HP",
+    str_detect(target_population, "NPS") ~ "P",
+     str_detect(target_population, "SCZ") ~ "P",
+      str_detect(target_population, "UHR") ~ "CHR",
+      str_detect(target_population, "ARMS") ~ "CHR",
+       str_detect(cohort, "Avon") ~ "HP",
+       str_detect(target_population, "NEMESIS") ~ "HP",
+       str_detect(cohort, "inpatients") ~ "P",
+       str_detect(cohort, "patients") ~ "P",
+       str_detect(cohort, "Birth") ~ "HP",
+    TRUE ~ NA_character_ 
+  ))
+
+View(df_plcohort)
 
 #sample_size_(total_n)
 #total_n 
@@ -331,5 +473,24 @@ View(table_comparision)
 #citation
 #title
  
+ #tidy data 
+
+
+
+
+
+
+
+
 write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")
+
+# Convert the data frame to a grid table
+comp<- gridExtra::tableGrob(filtered_table_comp)
+
+# Save the table as a PDF
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/filtered_table_comp.pdf")
+grid::grid.draw(comp)
+dev.off()
+
+
 

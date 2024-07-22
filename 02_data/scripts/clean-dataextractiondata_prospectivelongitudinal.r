@@ -85,11 +85,6 @@ df_plcohort <- df_plcohort %>%
 df_plcohort <- df_plcohort %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "(lifetime|continued|continuation| ever |past|current|early|late|onset|at age|age of|after age|by age fourteen|by age|fourteen|fifteen|sixteen|seventeen|eighteen|twenty|twentieone|last year|last three months|last six months|prior|last 12 months|prior to age|age of onset|last month|baseline|t2|not)", "*\\1*"))
 
-
-#df_plcohort <- df_plcohort %>%
-  #mutate(cannabis_all = gsub("(\\b(?!14\\b|15\\b|16\\b|18\\b|17-18\\b|20-21\\b)[0-9]+\\b)(?<!T )", "[\\1]", cannabis_all, perl = TRUE)) %>%
-  #mutate(cannabis_all = gsub("(\\b(?!17-18\\b|20-21\\b)([0-9]+-[0-9]+)\\b)(?<!T )", "[\\1]", cannabis_all, perl = TRUE))
-
 #mark cannabis use level or frequency related words with [word]
 df_plcohort <- df_plcohort %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "(severity|several|frequent|frequency|infrequent|occasional|abuse|dependence|abstinent|cannabis use disorder|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud|cannabis use disorder|without impairment|with cannabis-induced aps|/week|/day|/month|/year|years|times|days|five|sistematic|almost|in remission|<|>|=|-)", "[\\1]"))
@@ -138,6 +133,18 @@ table_grob<- gridExtra::tableGrob(filtered_table_freq)
 pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/filtered_table_freq.pdf")
 grid::grid.draw(table_grob)
 dev.off()
+
+
+df_cannabis <- df_plcohort %>%
+select(cannabis_all,cannabis_use_frequency,recall_cannabis_use_timeframe,cannabis_control)
+
+View(df_cannabis)
+
+View(data.frame(table(df_plcohort$recall_cannabis_use_timeframe)))
+View(data.frame(table(df_plcohort$cannabis_use_frequency)))
+View(data.frame(table(df_plcohort$recall_cannabis_use_timeframe)))
+
+
 
 
 
@@ -196,7 +203,6 @@ df_plcohort <- df_plcohort %>%
  mutate(outcome_clean= outcome) 
 
 
-
 #correct all words with symp that are spelled wrong
 df_plcohort <- df_plcohort %>%
   mutate(outcome_clean = str_replace_all(outcome_clean, "(symtoms|symtomes|symtpoms)", "symptoms"))
@@ -211,8 +217,6 @@ df_plcohort %>%
  .[str_detect(., "\\bsym\\w*")] %>%
  unique() %>%
  print()
-
-
 
 
 #see if it worked
@@ -263,8 +267,6 @@ View(df_outcome_stats)
 
 df_plcohort <- df_plcohort %>%
 mutate("outcome_measure_clean"= toupper(outcome_measure))
-
-
 
 
 df_plcohort <- df_plcohort %>%
@@ -335,9 +337,7 @@ select(outcome_clean,outcome_measure_coded)
 selectionNA <-df_plcohort %>%
 filter(is.na(outcome_measure_coded))%>%
 select(outcome_clean,outcome_measure_clean,outcome_measure_coded)%>%
-View(
-
-
+View()
 
 
 df_plcohort <- df_plcohort %>%
@@ -375,27 +375,8 @@ View(as.data.frame(table(df_plcohort$outcome_coded)))
 
 View(df_plcohort) %>% 
 filter(is.na(outcome_coded)))
-
-
-
-
-
-
-
-
-
-
-
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all('outcome_coded', "(chr+", "chr state"))
-
-# Create a table from the outcome_coded column
-table_data <- as.data.frame(table(as.factor(df_plcohort$outcome_coded)))
-
-filtered_table_data <- filter(table_data, Freq > 5)
-# Display the filtered table
-View(filtered_table_data)
-
+ 
+View(as.data.frame(table(df_plcohort$outcome_measure_coded)))
 
 #******************************************CLEAN FOLLOW-UP TIME*********************************************
 
@@ -456,6 +437,48 @@ df_plcohort$country_clean <- df_plcohort$country %>%
 
 View(as.data.frame(table(as.factor(df_plcohort$country_clean))))
  
+ #**************************GENDER*************************************
+
+#%_male_in_cannabis_group 
+#%_male_in_no_cannabis_group
+#"%_male"
+#cohort
+
+df_gender <- df_plcohort %>%
+  select(`%_male`, `%_male_in_cannabis_group`, `%_male_in_no_cannabis_group`, cohort)
+
+View(df_gender)
+
+unique(df_plcohort$`%_male`)
+
+
+#sometimes weird values, is it worth it to go back and double-check? (ask Sagnik)
+
+
+#*******************************************AGE*****************************
+#"mean_age_outcome_group"
+#"mean_age_non_outcome_group"
+#"mean_age_in_cannabis_group"
+#"mean_age_in_no-cannabis_group"
+#"age_range"
+#"mean_age"
+#age_sd
+#age
+
+df_age <- df_plcohort %>%
+  select(`mean_age_outcome_group`, `mean_age_non_outcome_group`, `mean_age_in_cannabis_group`,`mean_age_in_no-cannabis_group`,`age_range`,`mean_age`)
+
+View(df_age)
+unique(df_plcohort$age_range)
+
+#does it make sense to categorize the cohorts according to age? (ask Sagnik)
+
+#**********************************************************
+
+
+
+
+
 
 #variables who might have info psychosis type
 #fep_vs_chronic 
@@ -466,38 +489,13 @@ View(as.data.frame(table(as.factor(df_plcohort$country_clean))))
 #dt_name
 #kind_of_psychosis
 
-df_cohort <- df_plcohort %>%
-select(study_year_psycont,fep_vs_chronic, target_population,cohort,cohort_more_detail,diagnostic_tool,kind_of_psychosis,outcome, outcome_measure, outcome_clean, outcome_measure, outcome_measure_coded,mean_c,sd_c, mean_nc, sd_nc, or, lci_or,uci_or,aor,lci_aor,uci_aor,cu_p,ncu_p,cu_np,ncu_np)
-
-View(df_cohort)
-
-
-df_pop<- df_plcohort %>%
-select(target_population,population)
-
-View(df_pop)
 #factors accounted for 
 #baseline_differences_between_group?
 #factors_accounted_for
 
-#age
-#age_sd
-#age_range
-#mean_age
 
 
-
-#time
-#follow-up_duration
-#cannabis__&outcome_analysis_timeframe
-#time_frame
-#recall?
-#followup_duration
-#study_type
-#survival_curve?
-
-View(as.data.frame(table(df_plcohort$population)))
-View(as.data.frame(table(df_plcohort$target_population)))
+#********************POPULATION*****************
 
 df_plcohort <- df_plcohort %>%
     mutate(population = case_when(
@@ -519,7 +517,7 @@ df_plcohort <- df_plcohort %>%
     TRUE ~ NA_character_ 
   ))
 
-View(df_plcohort)
+View(as.data.frame(table(df_plcohort$population)))
 
 
 #chronic vs FEP
@@ -540,10 +538,8 @@ df_plcohort <- df_plcohort %>%
     TRUE ~ NA_character_ # For rows that do not match any of the above conditions
   ))
 
-df_P <- df_plcohort %>%
-filter(population == "P"& is.na(fepvschronic_coded))
+View(as.data.frame(table(df_plcohort$fepvschronic_coded)))
 
-View(df_P)
 
 
 ##create psychosis_type_coded
@@ -553,27 +549,11 @@ View(df_P)
      
 
 
-
-
-
-#sample_size_(total_n)
-#total_n 
-
-
-#%_male_in_cannabis_group 
-#%_male_in_no_cannabis_group
-
-
 #reference
 #citation
 #title
  
  #tidy data 
-
-
-View(df_plcohort)
-
-
 
 
 
@@ -589,3 +569,6 @@ dev.off()
 
 
 #*****************************************CLEAN STATISTICAL DATA******************************************
+
+#sample_size_(total_n)
+#total_n 

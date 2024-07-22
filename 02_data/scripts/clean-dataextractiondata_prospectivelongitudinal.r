@@ -24,7 +24,7 @@ colnames(df_plcohort) <- gsub(" ", "_", colnames(df_plcohort))
 
 
 
-#clean cannabis use data
+#**************************************CLEAN CANNABIS USE DATA****************************************************
 
 #clean lifetime variable 
 df_plcohort$"lifetime_cannabis_use" <-  tolower(df_plcohort$"lifetime_cannabis_use")
@@ -140,6 +140,7 @@ grid::grid.draw(table_grob)
 dev.off()
 
 
+
 #clean cannabis comparision variable 
 
 df_plcohort$cannabis_control <- tolower(df_plcohort$"comparision(control-group)")
@@ -150,11 +151,11 @@ df_plcohort <- df_plcohort %>%
 
 
 df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(`comparision_coded`, "(no cannbis use during the study|no-use|no cannabis use|no use of marijuana|no use or dependence|non-users|non consumers|non users)", "no use"))
+ mutate(comparision_coded = str_replace_all(comparision_coded, "(no cannbis use during the study|no-use|no cannabis use|no use of marijuana|no use or dependence|non-users|non consumers|non users)", "no use"))
 
 
  df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(`comparision_coded`, "(used 0 times|no use (never cannabis)|0 times us of cannabis|never use|never-users|never used|never users (negative urine test)|use of marijuana|no use or dependence|non-users|non consumers|non users)", "never"))
+ mutate(comparision_coded = str_replace_all(comparision_coded, "(used 0 times|no use (never cannabis)|0 times us of cannabis|never use|never-users|never used|never users (negative urine test)|use of marijuana|no use or dependence|non-users|non consumers|non users)", "never"))
 
 
  df_plcohort <- df_plcohort %>%
@@ -166,8 +167,27 @@ filtered_table_comp <- filter(table_comp, Freq > 3)
 View(filtered_table_comp)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
-#clean outcome variable 
+#**********CLEAN OUTCOME DATA***************************************************************************
 
 
 df_plcohort$outcome <- tolower(df_plcohort$outcome)
@@ -175,20 +195,11 @@ df_plcohort$outcome <- tolower(df_plcohort$outcome)
 df_plcohort <- df_plcohort %>%
  mutate(outcome_clean= outcome) 
 
-# Print words starting with "sym" 
-df_plcohort %>%
-  filter(str_detect(outcome_clean, "\\bsym\\w*")) %>%
- pull(outcome_clean) %>%
- unique() %>%
- str_split(" ") %>%
-  unlist() %>%
- .[str_detect(., "\\bsym\\w*")] %>%
- unique() %>%
- print()
+
 
 #correct all words with symp that are spelled wrong
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_clean = str_replace_all(outcomeclean, "(symtoms|symtomes|symtpoms)", "symptoms"))
+  mutate(outcome_clean = str_replace_all(outcome_clean, "(symtoms|symtomes|symtpoms)", "symptoms"))
 
 #see if it worked
 df_plcohort %>%
@@ -229,9 +240,9 @@ df_plcohort %>%
  print()
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(dimensios|dimention)", "dimension"))%>%
-  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(ngtaive|negtaive)", "negative"))%>%
-  mutate(outcome_clean = str_replace_all(`outcome_clean`, "(schziphrenia|negtaive)", "negative"))
+  mutate(outcome_clean = str_replace_all(outcome_clean, "(dimensios|dimention)", "dimension"))%>%
+  mutate(outcome_clean = str_replace_all(outcome_clean, "(ngtaive|negtaive)", "negative"))%>%
+  mutate(outcome_clean = str_replace_all(outcome_clean, "(schziphrenia|negtaive)", "negative"))
 
 df_plcohort %>%
   filter(str_detect(outcome_clean, "\\bpsych\\w*")) %>%
@@ -324,64 +335,55 @@ select(outcome_clean,outcome_measure_coded)
 selectionNA <-df_plcohort %>%
 filter(is.na(outcome_measure_coded))%>%
 select(outcome_clean,outcome_measure_clean,outcome_measure_coded)%>%
-View()
-
-#kind of psychotic symptoms and kind of relapse 
-df_plcohort <- df_plcohort %>%
-  mutate(suboutcome = case_when(
-    str_detect(outcome_clean, ) ~ ,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+View(
 
 
 
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all("outcome_coded", "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))%>% 
-  mutate(outcome_coded = str_replace_all("outcome_coded", "negative psychotic symptoms of psychotic symptoms", "negative psychotic symptoms"))
-
-
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all("outcome_coded", "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))
+  mutate(outcome_clean = str_replace_all(outcome_clean, "(negative psychosis|negative dimension|negative schizophrenia symptoms|negative symptoms)", "negative psychotic symptoms"))%>% 
+  mutate(outcome_clean = str_replace_all(outcome_clean, "negative psychotic symptoms of psychotic symptoms", "negative psychotic symptoms"))
 
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all("outcome_coded", "(positive dimension|positive psychosis|positive schziphrenia symptoms|positive symptoms)", "positive psychotic symptoms"))
+  mutate(outcome_clean = case_when(
+    !is.na(outcome_clean) ~ outcome_clean,  # If outcome_clean is not NA, keep its current value
+    is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("positive", ignore_case = TRUE)) ~ "positive psychotic symptoms",
+    is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("Negative", ignore_case = TRUE)) ~ "negative psychotic symptoms",
+    is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("General", ignore_case = TRUE)) ~ "general psychotic symptoms",
+     is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("total", ignore_case = TRUE)) ~ "total psychotic symptoms",
+    is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("hospitalizations|hospitalization", ignore_case = TRUE)) ~ "hospitalizations",
+    TRUE ~ NA_character_  # Keeps NA as is if none of the above conditions are met
+  ))
 
-#view levels as a table so that you can decide which expression to take and which values you have to rename
-View(as.data.frame(table(as.factor(df_plcohort$outcome_coded))))
 
-selection <-df_plcohort[df_plcohort$outcome_coded,]
+#df_plcohort <- df_plcohort %>%
+  #mutate(outcome_coded = str_replace_all(outcome_coded, "(schizophrenia symptoms (0-58) |mean psychotic symptoms)", "grandiosity"|"hallucinations"|"disorganized symptoms"|"general symptoms"|"any cidi hallucination item"|"paranoia"|"first-rank)", "psychotic symptoms"))
 
-View(selection)
-
+#outcome_coded
 df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(outcome_coded, "(schizophrenia symptoms (0-58) |mean psychotic symptoms)", "grandiosity"|"hallucinations"|"disorganized symptoms"|"general symptoms"|"any cidi hallucination item"|"paranoia"|"first-rank)", "psychotic symptoms"))
+  mutate(outcome_coded = case_when(
+    str_detect(outcome_clean, regex("symptoms|symptom|first-rank|hallucination|grandiosity|paranoia|unusual thought|psychotic experiences|anhedonia|avolition|expression of emotion|ideational richness|functioning|ideas|suspiciousness|items|disorganized|score|delusions|bamm|perceptual", ignore_case = TRUE)) ~ "symptoms",
+    str_detect(outcome_clean, regex("icd-8|psychosis onset|non-affective psychosis|t1-t2 psychosis", ignore_case = TRUE)) ~ "psychosis onset",
+    str_detect(outcome_clean, regex("transition", ignore_case = TRUE)) ~ "transition to psychosis",
+    str_detect(outcome_clean, regex("chr\\+", ignore_case = TRUE)) ~ "CHR state",
+    str_detect(outcome_clean, regex("relapse|hospitalizations\\+", ignore_case = TRUE)) ~ "relapse",
+    TRUE ~ NA_character_ # For rows that do not match any of the above conditions
+  ))
+
+View(as.data.frame(table(df_plcohort$outcome_coded)))
 
 
-df_plcohort <- df_plcohort %>%
-  mutate(outcome_coded = str_replace_all(`outcome_coded`, "(icd-8|psychosis onset|psychosis onset|non-affective psychosis)", "development of a psychotic disorder"))
+View(df_plcohort) %>% 
+filter(is.na(outcome_coded)))
+
+
+
+
+
+
+
+
+
 
 
 df_plcohort <- df_plcohort %>%
@@ -395,7 +397,65 @@ filtered_table_data <- filter(table_data, Freq > 5)
 View(filtered_table_data)
 
 
+#******************************************CLEAN FOLLOW-UP TIME*********************************************
 
+#time
+#follow-up_duration
+#cannabis__&outcome_analysis_timeframe
+#time_frame
+#recall?
+#followup_duration
+#study_type
+#survival_curve?
+
+df_followup <-df_plcohort %>%
+select("follow-up_duration","cannabis__&_outcome_analysis_timeframe","time_frame_(cannabis_use_and_outcome_measure_time)","time_frame","recall?","followup_duration","study_type", "timeframe_hr", "prospective?", "outcome_clean", "followup_combined", "followup")
+
+View(df_followup)
+
+summary(df_followup)
+unique(df_followup$followup_duration)
+table(df_followup)
+sum(is.na())
+
+
+#create a new variable followup that is a combination of follow-up_duration and followup_duration
+
+df_plcohort$followup <- df_plcohort$"follow-up_duration"
+
+
+df_plcohort$followup[is.na(df_plcohort$followup)] <- df_plcohort$followup_duration[is.na(df_plcohort$followup)]
+
+#still needs to be checked: time_frame, time_frame_(cannabis_use_and_outcome_measure_time)
+#repeated cross-sectional or longitudinal?
+#followup-duration in months when there is no unit?
+
+#studytype needs to be checked very often cohort but dont know if prospective 
+
+
+
+#***************************************CLEAN COUNTRY*****************************************************
+
+View(as.data.frame(df_plcohort$country_clean, df_plcohort$country))
+
+df_plcohort$country_clean <- df_plcohort$country
+
+df_plcohort$country_clean <- df_plcohort$country %>%
+  str_replace_all("\\+", ",") %>%  # Replace "+" with ","
+  str_replace_all("\\bthe\\b", "") %>%  # Delete "the"
+  str_replace_all("\\band\\b", "") %>%  # Delete "and"
+  str_replace_all("United Kingdom|Uk|England", "UK") %>%  # Replace "United Kingdom" or "Uk" with "UK"
+  str_replace_all("London", "") %>%  # Remove "London"
+  str_replace_all("\\(monreal, Quebec\\)", "") %>%  # Corrected to remove "monreal, Quebec)"
+  str_replace_all("Copenhagen", "")%>%  # Remove "Copenhagen"
+  str_replace_all("United States", "USA") %>%  # Replace "United States" with "USA"
+  str_replace_all("-", "") %>%
+  str_replace_all("Navarre", "") %>%
+  str_replace_all(",(?!\\w)", "")%>% # Delete all commas not followed by a word
+  str_trim() # Delete all commas not followed by a word
+
+View(as.data.frame(table(as.factor(df_plcohort$country_clean))))
+ 
 
 #variables who might have info psychosis type
 #fep_vs_chronic 
@@ -461,6 +521,41 @@ df_plcohort <- df_plcohort %>%
 
 View(df_plcohort)
 
+
+#chronic vs FEP
+df_plcohort <- df_plcohort %>%
+  mutate(fepvschronic_coded = case_when(
+    (str_detect(cohort, regex("FEP|first episode", ignore_case = TRUE)) | 
+     str_detect(target_population, regex("FEP|first episode", ignore_case = TRUE))) & 
+    (str_detect(cohort, regex("chronic", ignore_case = TRUE)) | 
+     str_detect(target_population, regex("chronic", ignore_case = TRUE))) ~ "FEP, chronic",
+    
+    str_detect(fep_vs_chronic, regex("FEP|first episode", ignore_case = TRUE)) | 
+    str_detect(cohort, regex("FEP|first episode", ignore_case = TRUE)) | 
+    str_detect(target_population, regex("FEP|first episode", ignore_case = TRUE)) ~ "FEP",
+    
+    str_detect(cohort, regex("chronic", ignore_case = TRUE)) | 
+    str_detect(target_population, regex("chronic", ignore_case = TRUE)) ~ "chronic",
+    
+    TRUE ~ NA_character_ # For rows that do not match any of the above conditions
+  ))
+
+df_P <- df_plcohort %>%
+filter(population == "P"& is.na(fepvschronic_coded))
+
+View(df_P)
+
+
+##create psychosis_type_coded
+#df_plcohort <- df_plcohort %>%
+  #mutate(psychosis_type = case_when(
+    #(str_detect(outcome, regex("APS|affective", ignore_case = TRUE)) ~ 
+     
+
+
+
+
+
 #sample_size_(total_n)
 #total_n 
 
@@ -476,7 +571,7 @@ View(df_plcohort)
  #tidy data 
 
 
-
+View(df_plcohort)
 
 
 
@@ -493,4 +588,4 @@ grid::grid.draw(comp)
 dev.off()
 
 
-
+#*****************************************CLEAN STATISTICAL DATA******************************************

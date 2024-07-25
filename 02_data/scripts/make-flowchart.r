@@ -13,49 +13,90 @@ library(consort)
 
 evidencemap_tidy<- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/evidencemap_tidy.xlsx"))
 
-
-evidencemap_tidy <- evidencemap_tidy %>%
-mutate(id = row_number())
+cohort_data_extracted <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/cohort_df_clean.xlsx"))
 
 
+View(evidencemap_tidy)
+View(cohort_data_extracted)
 
 
-evidencemap_tidy[,.q(potstudies, fin, revpop) :=
-.(#ifelse(unique == 1, 1, NA),
-ifelse(potstudies == 1 & unique_study_pop == 1, 1, NA),
-ifelse(potstudies == 1 & is.na(Exclusion_coded) & unique_study_pop == 1, 1, NA),
-ifelse(potstudies == 1 & is.na(Exclusion_coded) & unique_study_pop == 1, broad_topic, NA)
-)]
+#**********************Datapreparation************************************
 
-evidencemap_tidy[, exc := seqFreq(
-  "not prospective longitudinal" = Exclusion_coded == "not prospective longitudinal", 
-  "outcome not relevant" = Exclusion_coded == "no relevant outcome", 
-  "duplicated publication of same cohortstudy" = Exclusion_coded =="double-publication", 
-  noneNA =TRUE
-)]
+studylist <- evidencemap_tidy[,c("Topic","studydesign","reviews","outcome","studycode")]#only select Topic, studycode, unique, potstudies, exclusion_coded
+extracted <- cohort_data_extracted[,c("studycode","population")]  #only select studycode and population, ``
+extracted <- unique(cohort_data_extracted[, .(studycode, population)], by = "studycode")  # Keep only the first occurrence of each studycode
 
+# Merge studylist and extracted by studycode, keeping all cases from studylist
+merged_data <- merge(studylist, extracted, by = "studycode", all.x = TRUE)
 
-eo  <- attr(evidencemap_tidy[, exc], 'obs.per.numcond')
-mult <- paste0('1, 2, ≥3 exclusions: n=',
-                eo[2], ', ',
-                eo[3], ', ',
-                eo[-(1:3)]  )
+# Fill in the population variable with "not extracted" if it is NA
+merged_data[is.na(population), population := "not extracted"]
+
+# View the resulting data table
+View(merged_data)
 
 
-pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/consort_plot.pdf", width = 11, height = 8.5)
+merged_data <- merged_data %>%
+  mutate(id= row_number()) %>%
+  mutate(Exclusion1 = case_when(
+    reviews == "Murrie (2020)" ~ "outcome not relevant",
+    studydesign %notin% c("cohort", "prospective cohort", "longitudinal") ~ "not potentially prospective cohort",
+    TRUE ~ NA_character_
+  
+  ))
+
+# Update Exclusion1 to "duplicate" if it is NA and the same studycode has already occurred
+merged_data <- merged_data %>%
+  group_by(studycode) %>%
+  mutate(Exclusion1 = ifelse(is.na(Exclusion1) & row_number() > 1, "duplicate", Exclusion1)) %>%
+  ungroup()
+
+# View the resulting data table
+View(merged_data)
+
+
+
+
+#********************Consortplot***********************************************
 
 consort_plot(
-evidencemap_tidy,
+merged_data,
 orders = c(id = "All primary studies of all systematic reviews",
-#unique = "duplicate studies removed",
-potstudies ="potentially prospective longitudinal",
-exc = "Excluded",
-revpop = "prospective longitudinal studies",
-fin = "final studies"
-),
-side_box = "exc", 
-allocation = "revpop",
-labels = c("1" = "Umbrella Review Groening et al", "2" ="Studies identified")
+Exclusion1 = "Exclusion",
+population = "Divided by Population",
+id = "final studies"
 )
+,
+side_box = "Exclusion1", 
+allocation = "population",
+labels = c("1" = "Umbrella Review Groening et al", "2" ="Dataextraction from Primary Studies"))
 
-dev.off()
+
+
+
+
+#all studies all reviews
+#Exclusion1
+#outcome not relevant = transitionrates to schizophrenia from cannabis-induced psychosis (NOT Murrie(2020))
+#not potentially prospective longitudinal (NOT prospective, cohort, longitudinal)
+
+#potentially relevant studies
+
+#Exclusion2
+#duplicates removed (unique studycode)
+#Exclusion in screening process 
+# outcome not relevant (everything except Murrie(2020))
+# duplicated publication of same cohortstudy
+# not potentially longitudinal cohort study 
+
+#Split (HP,CHR,P)
+#already extracted, need to be extracted
+
+
+
+
+
+
+
+
+

@@ -22,7 +22,7 @@ View(cohort_data_extracted)
 
 #**********************Datapreparation************************************
 
-studylist <- evidencemap_tidy[,c("Topic","studydesign","reviews","outcome","studycode")]#only select Topic, studycode, unique, potstudies, exclusion_coded
+studylist <- evidencemap_tidy[,c("Topic","studydesign","reviews","outcome","studycode","Exclusion_coded")]#only select Topic, studycode, unique, potstudies, exclusion_coded
 extracted <- cohort_data_extracted[,c("studycode","population")]  #only select studycode and population, ``
 extracted <- unique(cohort_data_extracted[, .(studycode, population)], by = "studycode")  # Keep only the first occurrence of each studycode
 
@@ -63,13 +63,15 @@ consort_plot(
 merged_data,
 orders = c(id = "All primary studies of all systematic reviews",
 Exclusion1 = "Exclusion",
-population = "Divided by Population",
-id = "final studies"
+id = "Extraction started",
+Exclusion_coded = "Exclusion",
+population = "divided by population",
+id = "Final studies"
 )
 ,
-side_box = "Exclusion1", 
+side_box = c("Exclusion1","Exclusion_coded"), 
 allocation = "population",
-labels = c("1" = "Umbrella Review Groening et al", "2" ="Dataextraction from Primary Studies"))
+labels = c("1" = "Umbrella Review Groening et al", "2"="Dataextraction from Primary Studies"))
 
 
 
@@ -93,8 +95,9 @@ labels = c("1" = "Umbrella Review Groening et al", "2" ="Dataextraction from Pri
 #already extracted, need to be extracted
 
 
+studiesleft <-merged_data%>%filter(is.na(Exclusion1) & is.na(Exclusion_coded) & population =="not extracted")
 
-
+write_xlsx(studiesleft, "02_data/to_extract/studiesleft.xlsx")
 
 
 

@@ -636,12 +636,15 @@ summary <- df_plcohort %>%
 group_by(studycode) %>%
 summarise(
   outcomes =paste(unique(outcome_coded), collapse =" & "),
+  cannabis_frequency = paste(unique(cannabis_use_frequency), collapse =" & "),
   cannabis_levels = paste(unique(cannabis_level_of_use), collapse =" & "),
   timepoints = paste(unique(followup), collapse =" & "),
-  populations = paste(unique(population), collapse =" & ")
-
-
-  
+  populations = paste(unique(population), collapse =" & ") 
 )
 
 View(summary)
+
+#********************ROBDATA*********************
+
+View(df_plcohort %>%
+select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))

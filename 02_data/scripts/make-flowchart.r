@@ -99,6 +99,7 @@ studiesleft <-merged_data%>%filter(is.na(Exclusion1) & is.na(Exclusion_coded) & 
 
 write_xlsx(studiesleft, "02_data/to_extract/studiesleft.xlsx")
 
+write_xlsx(merged_data,"C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/studylist_evidencemapandextraction.xlsx" )
 
 
 

@@ -648,3 +648,7 @@ View(summary)
 
 View(df_plcohort %>%
 select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))
+
+#**************************************double-check_rob_manually******************************************************
+#double-check missing years manually and add in
+

@@ -1,0 +1,292 @@
+---
+title: "MA_Forestplot"
+author: "Johanna M Groening"
+date: "2023-06-03"
+output: html_document
+---
+
+```{r}
+### a little helper function to add Q-test, I^2, and tau^2 estimate info
+mlabfun <- function(text, rem_unique) {
+   list(bquote(paste(.(text),
+      " (Q = ", .(formatC(rem_unique$QE, digits=2, format="f")),
+      ", df = ", .(rem_unique$k - rem_unique$p),
+      ", p ", .(metafor:::.pval(rem_unique$QEp, digits=2, showeq=TRUE, sep=" ")), "; ",
+      I^2, " = ", .(formatC(rem_unique$I2, digits=1, format="f")), "%, ",
+      tau^2, " = ", .(formatC(rem_unique$tau2, digits=2, format="f")), ")")))}
+ 
+### set up forest plot (with 2x2 table counts added; the 'rows' argument is
+### used to specify in which rows the outcomes will be plotted)
+forest(rem_unique, xlim=c(-16, 4.6), at=log(c(0.05, 0.25, 1, 4)),
+       atransf=exp,ilab=cbind(CU_P, CU_NP,NCU_P, NCU_NP), ilab.xpos=c(-9.5,-8,-6,-4.5),
+       cex=0.40, ylim=c(-1, 55), 
+       mlab=mlabfun("RE Model for All Studies", rem_unique),
+       psize=1, header="Author")
+ 
+### set font expansion factor (as in forest() above) and use a bold font
+op <- par(cex=0.40, font=2)
+ 
+### add additional column headings to the plot
+text(c(-9.5,-8,-6,-4.5), 54, c("CU_P", "CU_NP", "NCU_P", "NCU_NP"))
+text(c(-8.75,-5.25),     55, c("Cannabis use", "Control"))
+ 
+### switch to bold italic font
+par(font=4)
+ 
+### add text for the subgroups
+text(-16, c(24,16,5), pos=4, c("HP",
+                               "CHR",
+                               "P"))
+ 
+### set par back to the original settings
+par(op)
+ 
+### fit random-effects model in the three subgroups
+res.hp <- rma(OR_metafor, v_OR_Metafor, subset=(group=="HP"), data=all_merged_metafor_unique)
+res.chr <- rma(OR_metafor, v_OR_Metafor, subset=(group=="CHR"),     data=all_merged_metafor_unique)
+res.p <- rma(OR_metafor, v_OR_Metafor, subset=(group=="P"),  data=all_merged_metafor_unique)
+ 
+### add summary polygons for the three subgroups
+addpoly(res.hp, row=18.5, mlab=mlabfun("RE Model for Subgroup", res.hp))
+addpoly(res.chr, row= 7.5, mlab=mlabfun("RE Model for Subgroup", res.chr))
+addpoly(res.p, row= 1.5, mlab=mlabfun("RE Model for Subgroup", res.p))
+ 
+
+ 
+### add text for the test of subgroup differences
+text(-16, -1.8, pos=4, cex=0.32, bquote(paste("Test for Subgroup Differences: ",
+     Q[M], " = ", .(formatC(rem_unique$QM, digits=2, format="f")), ", df = ", .(rem_unique$p - 1),
+     ", p = ", .(formatC(rem_unique$QMp, digits=2, format="f")))))
+```
+```{r}
+
+### a little helper function to add Q-test, I^2, and tau^2 estimate info
+mlabfun <- function(text, res) {
+   list(bquote(paste(.(text),
+      " (Q = ", .(formatC(res$QE, digits=2, format="f")),
+      ", df = ", .(res$k - res$p),
+      ", p ", .(metafor:::.pval(res$QEp, digits=2, showeq=TRUE, sep=" ")), "; ",
+      I^2, " = ", .(formatC(res$I2, digits=1, format="f")), "%, ",
+      tau^2, " = ", .(formatC(res$tau2, digits=2, format="f")), ")")))}
+ 
+### set up forest plot (with 2x2 table counts added; the 'rows' argument is
+### used to specify in which rows the outcomes will be plotted)
+forest(res, 
+       atransf=exp,ilab=cbind(CU_P, CU_NP,NCU_P, NCU_NP), 
+       mlab=mlabfun("RE Model for All Studies", res),
+       psize=1, header="Study")
+ 
+### set font expansion factor (as in forest() above) and use a bold font
+op <- par(cex=0.40, font=2)
+ 
+### add additional column headings to the plot
+text(c(-9.5,-8,-6,-4.5),  c("CU_P", "CU_NP", "NCU_P", "NCU_NP"))
+text(c(-8.75,-5.25),     c("Cannabis use", "Control"))
+ 
+### switch to bold italic font
+par(font=4)
+ 
+### add text for the subgroups
+text(-16, c(24,16,5), pos=4, c("HP",
+                               "CHR",
+                               "P"))
+ 
+### set par back to the original settings
+par(op)
+ 
+### fit random-effects model in the three subgroups
+res.hp <- rma(OR_metafor, v_OR_Metafor, subset=(group=="HP"), data=all_merged_new)
+res.chr <- rma(OR_metafor, v_OR_Metafor, subset=(group=="CHR"),     data=all_merged_new)
+res.p <- rma(OR_metafor, v_OR_Metafor, subset=(group=="P"),  data=all_merged_new)
+ 
+### add summary polygons for the three subgroups
+addpoly(res.hp, row=18.5, mlab=mlabfun("RE Model for Subgroup", res.hp))
+addpoly(res.chr, row= 7.5, mlab=mlabfun("RE Model for Subgroup", res.chr))
+addpoly(res.p, row= 1.5, mlab=mlabfun("RE Model for Subgroup", res.p))
+ 
+### fit meta-regression model to test for subgroup differences
+res <- rma(OR_metafor, v_OR_Metafor, mods = ~ group, data=all_merged_new)
+ 
+### add text for the test of subgroup differences
+text(-16, -1.8, pos=4, bquote(paste("Test for Subgroup Differences: ",
+     Q[M], " = ", .(formatC(res$QM, digits=2, format="f")), ", df = ", .(res$p - 1),
+     ", p = ", .(formatC(res$QMp, digits=2, format="f")))))
+```
+```{r}
+### a little helper function to add Q-test, I^2, and tau^2 estimate info
+mlabfun <- function(text, res) {
+   list(bquote(paste(.(text),
+      " (Q = ", .(formatC(res$QE, digits=2, format="f")),
+      ", df = ", .(res$k - res$p),
+      ", p ", .(metafor:::.pval(res$QEp, digits=2, showeq=TRUE, sep=" ")), "; ",
+      I^2, " = ", .(formatC(res$I2, digits=1, format="f")), "%, ",
+      tau^2, " = ", .(formatC(res$tau2, digits=2, format="f")), ")")))}
+ 
+### set up forest plot (with 2x2 table counts added; the 'rows' argument is
+### used to specify in which rows the outcomes will be plotted)
+forest(res, xlim=c(-16, 4.6), at=log(c(0.05, 0.25, 1, 4)),
+       atransf=exp,ilab=cbind(CU_P, CU_NP,NCU_P, NCU_NP), ilab.xpos=c(-9.5,-8,-6,-4.5),
+       cex=0.40, ylim=c(-1, 40), 
+       mlab=mlabfun("RE Model for All Studies", res),
+       psize=1, header="Author(s) and Year")
+ 
+### set font expansion factor (as in forest() above) and use a bold font
+op <- par(cex=0.40, font=2)
+ 
+### add additional column headings to the plot
+text(c(-9.5,-8,-6,-4.5), 42, c("CU_P", "CU_NP", "NCU_P", "NCU_NP"))
+text(c(-8.75,-5.25),     43, c("Cannabis use", "Control"))
+ 
+### switch to bold italic font
+par(font=4)
+ 
+### add text for the subgroups
+text(-16, c(24,16,5), pos=4, c("HP",
+                               "CHR",
+                               "P"))
+ 
+### set par back to the original settings
+par(op)
+ 
+### fit random-effects model in the three subgroups
+res.hp <- rma(OR_metafor, v_OR_Metafor, subset=(group=="HP"), data=df_prosp)
+res.chr <- rma(OR_metafor, v_OR_Metafor, subset=(group=="CHR"),     data=df_prosp)
+res.p <- rma(OR_metafor, v_OR_Metafor, subset=(group=="P"),  data=df_prosp)
+ 
+### add summary polygons for the three subgroups
+addpoly(res.hp, row=18.5, mlab=mlabfun("RE Model for Subgroup", res.hp))
+addpoly(res.chr, row= 7.5, mlab=mlabfun("RE Model for Subgroup", res.chr))
+addpoly(res.p, row= 1.5, mlab=mlabfun("RE Model for Subgroup", res.p))
+ 
+### fit meta-regression model to test for subgroup differences
+res <- rma(OR_metafor, v_OR_Metafor, mods = ~ group, data=df_prosp)
+ 
+### add text for the test of subgroup differences
+text(-16, -1.8, pos=4, cex=0.32, bquote(paste("Test for Subgroup Differences: ",
+     Q[M], " = ", .(formatC(res$QM, digits=2, format="f")), ", df = ", .(res$p - 1),
+     ", p = ", .(formatC(res$QMp, digits=2, format="f")))))
+```
+```{r}
+
+### a little helper function to add Q-test, I^2, and tau^2 estimate info
+mlabfun <- function(text, res) {
+   list(bquote(paste(.(text),
+      " (Q = ", .(formatC(res$QE, digits=2, format="f")),
+      ", df = ", .(res$k - res$p),
+      ", p ", .(metafor:::.pval(res$QEp, digits=2, showeq=TRUE, sep=" ")), "; ",
+      I^2, " = ", .(formatC(res$I2, digits=1, format="f")), "%, ",
+      tau^2, " = ", .(formatC(res$tau2, digits=2, format="f")), ")")))}
+ 
+### set up forest plot (with 2x2 table counts added; the 'rows' argument is
+### used to specify in which rows the outcomes will be plotted)
+forest(res, 
+       atransf=exp,ilab=cbind(CU_P, CU_NP,NCU_P, NCU_NP), 
+       mlab=mlabfun("RE Model for All Studies", res),
+       psize=1, header="Study")
+ 
+### set font expansion factor (as in forest() above) and use a bold font
+op <- par(font=2)
+ 
+### add additional column headings to the plot
+text(c(-9.5,-8,-6,-4.5),  c("CU_P", "CU_NP", "NCU_P", "NCU_NP"))
+text(c(-8.75,-5.25),     c("Cannabis use", "Control"))
+ 
+### switch to bold italic font
+par(font=4)
+ 
+### add text for the subgroups
+text(-16, c(24,16,5), pos=4, c("HP",
+                               "CHR",
+                               "P"))
+ 
+ 
+### fit random-effects model in the three subgroups
+res.hp <- rma(OR_metafor, v_OR_Metafor, subset=(group=="HP"), data=df_prosp)
+res.chr <- rma(OR_metafor, v_OR_Metafor, subset=(group=="CHR"),     data=df_prosp)
+res.p <- rma(OR_metafor, v_OR_Metafor, subset=(group=="P"),  data=df_prosp)
+ 
+### add summary polygons for the three subgroups
+addpoly(res.hp, row=18.5, mlab=mlabfun("RE Model for Subgroup", res.hp))
+addpoly(res.chr, row= 7.5, mlab=mlabfun("RE Model for Subgroup", res.chr))
+addpoly(res.p, row= 1.5, mlab=mlabfun("RE Model for Subgroup", res.p))
+ 
+### fit meta-regression model to test for subgroup differences
+res <- rma(OR_metafor, v_OR_Metafor, mods = ~ group, data=df_prosp)
+ 
+### add text for the test of subgroup differences
+text(-16, -1.8, pos=4, bquote(paste("Test for Subgroup Differences: ",
+     Q[M], " = ", .(formatC(res$QM, digits=2, format="f")), ", df = ", .(res$p - 1),
+     ", p = ", .(formatC(res$QMp, digits=2, format="f")))))
+```
+```{r}
+res <- rma(OR_metafor,v_OR_Metafor, mods=~group, data=all_merged_new,
+slab=paste(Author))
+res
+```
+
+```{r}
+res_prosp <- rma(OR_metafor,v_OR_Metafor, mods=~group, data=df_prosp,
+slab=paste(Author))
+res
+```
+
+```{r}
+forest(res)
+```
+```{r}
+### default forest plot of the log risk ratios and summary estimate
+forest(res, header=TRUE, shade="zebra")
+
+
+```
+```{r}
+defaults <- forest(res)
+
+defaults
+defaults
+```
+```{r}
+#meta-analysis for all the outcomes and studies 
+res_all<-rma(OR_metafor,v_OR_Metafor, mods=~group, data=all_merged_new,
+slab=paste(Author))
+res_all
+forest(res_all)
+default_all <-forest(res_all)
+print(default_all)
+```
+```{r}
+default_all <-forest(res_all)
+print(default_all)
+```
+
+```{r}
+#meta-analysis where only those analyses largest N are chosen within different outcomegroups(dataframe-variable) - later i should level the outcomes better rather than infering outcomelevels from different dataframes
+res_unique<-rma(OR_metafor,v_OR_Metafor, mods=~group, data=all_merged_new_unique,
+slab=paste(Author))
+res_unique
+forest(res_unique)
+
+```
+```{r}
+
+default_unique <-forest(res_unique)
+print(default_unique)
+```
+
+```{r}
+#only prospective studies are chose
+res_prosp <- rma(OR_metafor,v_OR_Metafor, mods=~group, data=df_prosp,
+slab=paste(Author))
+res_prosp
+forest(res_prosp)
+
+```
+```{r}
+
+default_prosp <-forest(res_prosp)
+print(default_prosp)
+```
+
+
+
+

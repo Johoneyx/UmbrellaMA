@@ -1,0 +1,228 @@
+---
+title: "MA_Analysis"
+author: "Johanna M Groening"
+date: "2023-06-16"
+output: html_document
+---
+
+```{r}
+
+library(readxl)
+library(tidyverse)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+library(metafor)
+
+```
+
+
+```{r}
+library(metafor)
+```
+
+```{r}
+all_merged$N_NCU <-as.numeric(all_merged$N_NCU)
+all_merged$SD_NC <-as.numeric(all_merged$SD_NC)
+all_merged$SD_C<-as.numeric(all_merged$SD_C)
+all_merged$total_N<-as.numeric(all_merged$total_N)
+all_merged$UCI_SMD<-as.numeric(all_merged$UCI_SMD)
+```
+
+```{r}
+all_merged_metafor<-escalc("SMD", di=SMD,n1i=N_CU , n2i=N_NCU,
+       m1i=Mean_C, m2i=Mean_NC, sd1i=SD_C, sd2i=SD_NC,
+       data=all_merged, slab, subset, include,
+       add=1/2, to="only0", drop00=FALSE, vtype="LS",
+       var.names=c("SMD_Metafor","V_Metafor"), add.measure=FALSE,
+       append=TRUE, replace=TRUE)
+```
+
+```{r}
+
+variables_to_convert <- c("N_NCU", "SD_NC", "SD_C", "total_N", "UCI_SMD")
+for (variable in variables_to_convert) {
+  all_merged[[variable]] <- as.numeric(all_merged[[variable]])
+}
+```
+
+```{r}
+str(all_merged)
+```
+
+```{r}
+all_merged_metafor$SMD_Metafor
+```
+
+
+```{r}
+all_merged_metafor<-escalc(measure="OR", ai=CU_P, bi=CU_NP, ci=NCU_P, di=NCU_NP,
+       data=all_merged_metafor, 
+       add=1/2, to="only0", drop00=FALSE, vtype="LS",
+       var.names=c("OR_metafor","v_OR_Metafor"), add.measure=FALSE,
+       append=TRUE, replace=TRUE)
+```
+
+```{r}
+all_merged_metafor$OR_metafor
+```
+
+
+```{r}
+all_merged_metafor<-conv.wald(out=OR, ci.lb=LCI_OR, ci.ub=UCI_OR, pval=P_OR, n=total_N, data=all_merged_metafor, 
+          level=95, transf=log, check=TRUE, var.names=c("OR_metafor","v_OR_Metafor"), append=TRUE, replace="ifna")
+```
+
+
+```{r}
+all_merged_metafor<-conv.wald(out=aOR, ci.lb=LCI_aOR, ci.ub=UCI_aOR,  pval=P_aOR, n=total_N,  data=all_merged_metafor,
+          level=95, transf=log, check=TRUE, var.names=c("aOR_metafor","v_aOR_Metafor"), append=TRUE, replace="ifna")
+```
+
+```{r}
+print(all_merged_metafor$P_aOR)
+```
+
+```{r}
+
+str(all_merged_metafor)
+```
+
+```{r}
+res_all <- rma(OR_metafor,v_OR_Metafor, data=all_merged_metafor)
+res_all
+```
+
+
+
+```{r}
+all_merged_metafor <-all_merged_metafor%>%mutate(ID=row_number())
+```
+
+```{r}
+all_merged_metafor$group
+all_merged_metafor$Author<-as.factor(all_merged_metafor$Author)
+```
+```{r}
+all_merged_metafor<- all_merged_metafor[complete.cases(all_merged_metafor$Author), ]
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+mlm_all_merged_metafor_SMD<- rma.mv(yi=SMD_Metafor,V=all_merged_metafor$V_Metafor, data=all_merged_metafor,
+                             slab=Author,
+random = ~ 1 | Author/ID,
+test = "t", method = "REML",
+mods =~ relevel(factor(all_merged_metafor$group), ref="HP"))
+summary(mlm_all_merged_metafor_SMD)
+
+
+?rma.mv
+```
+```{r}
+library(dmetar)
+i2 <- var.comp(mlm_all_merged_metafor_SMD)
+summary(i2)
+```
+
+
+```{r}
+#3-level mixed effects model
+#Test of Moderators group shows significant differences between population groups F=11.0865, p-val < .0001
+#CHR: z=-0.02, HP: z=0.97***, P: z=0.26
+mlm_all_merged_metafor<- rma.mv(OR_metafor,v_OR_Metafor, data=all_merged_metafor,
+                             slab=Author,
+random = ~ 1 | Author/ID,
+test = "t", method = "REML",
+mods = ~ group)
+summary(mlm_all_merged_metafor)
+
+```
+```{r}
+mlm_all_merged_metafor<- rma.mv(OR_metafor,v_OR_Metafor, data=all_merged_metafor,
+                             slab=Author,random = ~ 1 | Author/ID,
+test = "t", method = "REML",
+mods= ~ relevel(factor(all_merged_metafor$group), ref="HP"))
+
+
+summary(mlm_all_merged_metafor)
+
+```
+
+
+```{r}
+mlm_all_merged_metafor$group<-as.factor(mlm_all_merged_metafor$group)
+predict(mlm_all_merged_metafor, transf=exp)
+```
+
+
+```{r}
+#40.84% of the variability is due to within-cluster heterogeneity, 50.77 to between-cluster-heterogeneity #sampling error variance is only 8%
+library(dmetar)
+i2 <- var.comp(mlm_all_merged_metafor)
+summary(i2)
+```
+
+```{r}
+
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_nocross_metafor <- all_merged_metafor[!grepl("Cross", all_merged_metafor$"Study.type", ignore.case = TRUE), ]
+
+# Reset the row names of the dataframe if needed
+row.names(all_merged_metafor) <- NULL
+
+df_nocross_metafor$"Study.type"
+```
+
+
+```{r}
+
+all_merged_metafor<- all_merged_metafor%>%
+  arrange(dataframe, desc(N_calculated))
+
+
+all_merged_metafor_unique <- all_merged_metafor %>%
+  group_by(dataframe, Author) %>%
+  slice(1) %>%
+  ungroup()
+```
+
+
+```{r}
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_nocross_metafor_unique <- all_merged_metafor_unique[!grepl("Cross", all_merged_metafor_unique$"Study.type", ignore.case = TRUE), ]
+
+row.names(all_merged_metafor_unique) <- NULL
+
+df_nocross_metafor_unique$"Study.type"
+```
+
+```{r}
+
+# Filter out rows that contain 'Cross' in the 'Study.type' column (case insensitive)
+df_prosp_metafor_unique <- df_nocross_metafor_unique[!grepl("N", df_nocross_metafor_unique$"Prospective." , ignore.case = TRUE), ]
+
+# Reset the row names of the dataframe if needed
+row.names(df_nocross_metafor_unique) <- NULL
+
+df_prosp_metafor_unique$"Prospective."
+```
+
+```{r}
+rem_unique <- rma(OR_metafor,v_OR_Metafor, data=all_merged_metafor_unique,
+                             method = "ML",
+mods = ~ relevel(factor(all_merged_metafor_unique$group), ref="HP"),
+test = "knha")
+
+summary(rem_unique)
+
+```
+
+
+
+

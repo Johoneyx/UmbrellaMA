@@ -1,0 +1,56 @@
+---
+title: "Studylist_2"
+author: "Johanna M Groening"
+date: "2023-06-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(dplyr)
+
+# Define the Excel file path
+excel_file <- "Studylist_9.6.2023.xlsx"
+
+# Define the sheet names and corresponding columns
+sheet_columns <- list(
+  HP = c("Outcome", "node_label", "node_type"),
+  Mixed = c("Outcome", "node_label", "node_type"),
+  CHR = c("Outcome", "node_label", "node_type"),
+  P = c("Outcome", "node_label", "node_type"),
+  Moderators = c("Outcome", "node_label", "node_type")
+)
+
+# Create an empty dataframe
+df_studylist <- data.frame()
+
+# Read data from each sheet and append it to the dataframe with sheetname column
+for (sheet_name in names(sheet_columns)) {
+  # Read data from the sheet
+  sheet_data <- read_excel(excel_file, sheet = sheet_name, col_names = TRUE, col_types = "text", range = NULL)
+
+  # Convert all variables to character
+  sheet_data <- sheet_data %>% mutate(across(everything(), as.character))
+
+  # Add a column for sheetname
+  sheet_data$Sheetname <- sheet_name
+  
+  # Append the data to the main dataframe
+  df <- bind_rows(df_studylist, sheet_data)
+}
+
+# Print the resulting dataframe
+print(df_studylist)
+
+
+```
+
+```{r}
+
+
+```
+

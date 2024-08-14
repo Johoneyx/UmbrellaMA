@@ -13,10 +13,14 @@ evidencemaplist <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cl
 
 df_rob <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/df_rob_withcompletestudycode.xlsx")
 
-View(evidencemaplist)
+
 
 studylist <- evidencemaplist %>% 
-filter(is.na(Exclusion1))
+filter(is.na(Exclusion1)& is.na(Exclusion_coded))
+
+View(studylist)
+
+View(df_rob)
 
 studylistandrob <- studylist %>%
 left_join(df_rob, by ="studycode")

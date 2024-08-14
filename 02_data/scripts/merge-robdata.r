@@ -105,6 +105,14 @@ Rob_P_R_CC <- Rob_P_R_CC[!apply(is.na(Rob_P_R_CC), 1, all), ]
 
 View(Rob_P_R_CC)
 
+#Rob Riccardo psychosis population cohort
+Rob_P_R_C <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/Rob_Assesment_Riccardo_Johanna21.09.2023.xlsx", sheet=5,range=cell_cols("AA:AK")))
+
+# Remove completely empty rows
+Rob_P_R_C <- Rob_P_R_C[!apply(is.na(Rob_P_R_C), 1, all), ]
+
+
+#Rob carolina psychosis
 Rob_P_C <- as.data.table(read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/New_excel_Carolina_09.10_20.05.2024.xlsx", sheet=3,skip=1,))
 
 View(Rob_P_C)
@@ -112,7 +120,7 @@ View(Rob_P_C)
 Rob_P_C <- Rob_P_C %>%
 rename(Primary = "Study type")
 
-dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS, Rob_P_C)
+dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS, Rob_P_C, Rob_P_R_C)
 
 # Merge all data tables
 merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE)

@@ -22,11 +22,23 @@ df_plcohort <- read_xlsx("02_data/cleandata/cohort_df_clean.xlsx")
 #"mean_c" "sd_c" "mean_nc" "sd_nc" "smd" "smd_measure" "lci_smd" "uci_smd" #"p(smd)"#"n_cu"
  #"n_ncu"
 
-#*****************HP*********************
+#****************************Explore*Missing*Values*********
 
-dat <- df_plcohort 
+df_plcohort_SMD <-df_plcohort %>%
+select("mean_c", "sd_c","mean_nc","sd_nc","smd" ,"smd_measure","lci_smd","uci_smd","p(smd)","n_cu"
+ ,"n_ncu") %>%
+filter(if_any(everything(), is.na))
+
+View(df_plcohort_SMD)
+
+
+#*****************P*********************
+
+dat <- df_plcohort %>%
+filter(population=="HP")
 
 View(dat)
+
 
 dat <- dat %>%
 mutate(across(c(mean_c, sd_c, n_cu, mean_nc, sd_nc, n_ncu), as.numeric))
@@ -35,7 +47,8 @@ View(dat)
 
 dat <- escalc(measure="SMD", m1i=mean_c, sd1i=sd_c, n1i=n_cu,m2i=mean_nc, sd2i=sd_nc, n2i=n_ncu, data=dat)
 
-
+dat <- dat %>%
+filter(!yi =="Invalid Number" )
 
 dat <- dat %>%
   mutate(study = as.numeric(factor(studycode, levels = unique(studycode))))
@@ -69,20 +82,11 @@ par(tck=-.01, mgp=c(1,0.01,0), mar=c(2,4,0,2))
  
 dd <- c(0,diff(dat$study))
 rows <- (1:res$k) + cumsum(dd)
-forest(res, rows=rows, ylim=c(2,max(rows)+3), xlim=c(-5,7), cex=0.4,
+
+
+forest(res, rows=rows, ylim=c(2,max(rows)+3), xlim=c(-5,7), cex=0.8,
        efac=c(0,1), header=TRUE, mlab="Pooled Estimate")
 abline(h = rows[c(1,diff(rows)) == 2] - 1, lty="dotted")
-
-
-agg <- aggregate(dat, cluster=study, V=vcov(res, type="obs"), addk=TRUE)
-agg <- agg[c(1,4,5,9)]
-agg
-
-res <- rma(yi, vi, method="EE", data=agg, digits=3)
-res
-
-forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE,
-       ilab=ki, ilab.lab="Estimates", ilab.xpos=-2)
 
 
 

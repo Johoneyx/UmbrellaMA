@@ -10,7 +10,7 @@ merged_dt_rob<- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/clean
 
 studylist_cohort <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/df_studylist_cohort_unique.xlsx")
 
-View(df_rob_merged)
+
 
 df_rob_merged <- merged_dt_rob %>%
 select(-firstauthor)
@@ -24,13 +24,16 @@ studylist_cohort <- studylist_cohort %>%
   mutate(firstauthor_sl = str_replace_all(firstauthor_sl,"rossler", "rössler"))
 
 
+
 View(studylist_cohort)
 
 df_rob_merged <- df_rob_merged %>%
   mutate(review_rob = str_replace_all(str_trim(tolower(Review)), "\\s+", "")) %>%
   mutate(firstauthor_rob = tolower(First_author)) %>%
   mutate(firstauthor_rob = str_replace_all(firstauthor_rob, "riecher-rossler", "riecher-rössler")) %>%
-  mutate(firstauthor_rob = str_replace_all(firstauthor_rob,"rossler", "rössler"))
+  mutate(firstauthor_rob = str_replace_all(firstauthor_rob,"rossler", "rössler"))%>%
+   mutate(firstauthor_rob = 
+  str_replace_all(firstauthor_rob,"romer thomsen","rømerthomsen"))
 
 View(df_rob_merged)
 
@@ -44,11 +47,13 @@ View(df_rob_list_merged)
 merged_dt_rob <- df_rob_list_merged %>%
   mutate(year_merged = coalesce(Year, year))
 
+View(merged_dt_rob)
 
-View(merged_dt_rob[is.na(merged_dt_rob$year_merged),])
+
+View(merged_dt_rob[is.na(merged_dt_rob$TotalStars),])
 
 merged_dt_rob <- merged_dt_rob %>% 
-mutate(studycode_merged = paste(firstauthor_rob, year_merged, sep="_"))
+mutate(studycode_merged = paste(firstauthor_sl, year_merged, sep="_"))
 
 View(merged_dt_rob)
 

@@ -162,11 +162,7 @@ df_plcohort <- df_plcohort %>%
 
 
  df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(comparision_coded, "(used 0 times|no use (never cannabis)|0 times us of cannabis|never use|never-users|never used|never users (negative urine test)|use of marijuana|no use or dependence|non-users|non consumers|non users)", "never"))
-
-
- df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(`comparision_coded`, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\)|use of marijuana|no use or dependence|non-users|non consumers|non users)", "never"))
+ mutate(comparision_coded = str_replace_all(`comparision_coded`, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\)", "never"))
 
 table_comp <- as.data.frame(table(as.factor(df_plcohort$comparision_coded)))
 filtered_table_comp <- filter(table_comp, Freq > 3)
@@ -230,7 +226,7 @@ df_plcohort %>%
  unique() %>%
  print()
 
-#i repeated it for other comon syllabus such as dim, neg, pos etc.
+#i repeated it for other common syllabus such as dim, neg, pos etc.
 
 # Print words end with "phrenia" 
 df_plcohort %>%
@@ -346,7 +342,7 @@ df_plcohort <- df_plcohort %>%
 
 df_plcohort <- df_plcohort %>%
   mutate(outcome_clean = case_when(
-    !is.na(outcome_clean) ~ outcome_clean,  # If outcome_clean is not NA, keep its current value
+    !is.na(outcome_clean) ~ outcome_clean,  
     is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("positive", ignore_case = TRUE)) ~ "positive psychotic symptoms",
     is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("Negative", ignore_case = TRUE)) ~ "negative psychotic symptoms",
     is.na(outcome_clean) & str_detect(outcome_measure_clean, regex("General", ignore_case = TRUE)) ~ "general psychotic symptoms",
@@ -355,9 +351,6 @@ df_plcohort <- df_plcohort %>%
     TRUE ~ NA_character_  # Keeps NA as is if none of the above conditions are met
   ))
 
-
-#df_plcohort <- df_plcohort %>%
-  #mutate(outcome_coded = str_replace_all(outcome_coded, "(schizophrenia symptoms (0-58) |mean psychotic symptoms)", "grandiosity"|"hallucinations"|"disorganized symptoms"|"general symptoms"|"any cidi hallucination item"|"paranoia"|"first-rank)", "psychotic symptoms"))
 
 #outcome_coded
 df_plcohort <- df_plcohort %>%
@@ -377,6 +370,15 @@ View(df_plcohort) %>%
 filter(is.na(outcome_coded)))
  
 View(as.data.frame(table(df_plcohort$outcome_measure_coded)))
+
+# Convert the data frame to a grid table
+outcome_measure_coded<- gridExtra::tableGrob(outcome_measure_coded)
+
+# Save the table as a PDF
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/outcome_measure_coded.pdf")
+grid::grid.draw(outcome_measure_coded)
+dev.off()
+
 
 #******************************************CLEAN FOLLOW-UP TIME*********************************************
 
@@ -422,20 +424,29 @@ View(as.data.frame(df_plcohort$country_clean, df_plcohort$country))
 df_plcohort$country_clean <- df_plcohort$country
 
 df_plcohort$country_clean <- df_plcohort$country %>%
-  str_replace_all("\\+", ",") %>%  # Replace "+" with ","
-  str_replace_all("\\bthe\\b", "") %>%  # Delete "the"
-  str_replace_all("\\band\\b", "") %>%  # Delete "and"
-  str_replace_all("United Kingdom|Uk|England", "UK") %>%  # Replace "United Kingdom" or "Uk" with "UK"
-  str_replace_all("London", "") %>%  # Remove "London"
-  str_replace_all("\\(monreal, Quebec\\)", "") %>%  # Corrected to remove "monreal, Quebec)"
-  str_replace_all("Copenhagen", "")%>%  # Remove "Copenhagen"
-  str_replace_all("United States", "USA") %>%  # Replace "United States" with "USA"
+  str_replace_all("\\+", ",") %>%  
+  str_replace_all("\\bthe\\b", "") %>%  
+  str_replace_all("\\band\\b", "") %>%  
+  str_replace_all("United Kingdom|Uk|England", "UK") %>%  
+  str_replace_all("London", "") %>% 
+  str_replace_all("\\(monreal, Quebec\\)", "") %>%  # 
+  str_replace_all("Copenhagen", "")%>%  
+  str_replace_all("United States", "USA") %>% 
   str_replace_all("-", "") %>%
   str_replace_all("Navarre", "") %>%
-  str_replace_all(",(?!\\w)", "")%>% # Delete all commas not followed by a word
-  str_trim() # Delete all commas not followed by a word
+  str_replace_all(",(?!\\w)", "")%>% 
+  str_trim() 
 
-View(as.data.frame(table(as.factor(df_plcohort$country_clean))))
+country_clean <-as.data.frame(table(as.factor(df_plcohort$country_clean)))
+
+# Convert the data frame to a grid table
+country_clean<- gridExtra::tableGrob(country_clean)
+
+# Save the table as a PDF
+pdf("C:/Users/johan/Documents/PhD/UmbrellaMA/04_visualization/country_clean.pdf")
+grid::grid.draw(country_clean)
+dev.off()
+
  
  #**************************GENDER*************************************
 
@@ -639,10 +650,15 @@ summarise(
   cannabis_frequency = paste(unique(cannabis_use_frequency), collapse =" & "),
   cannabis_levels = paste(unique(cannabis_level_of_use), collapse =" & "),
   timepoints = paste(unique(followup), collapse =" & "),
-  populations = paste(unique(population), collapse =" & ") 
+  populations = paste(unique(population), collapse =" & "),
+  datarows = n()
 )
 
 View(summary)
+
+
+
+write_xlsx(summary, "04_visualization/dataexploration.xlsx")
 
 #********************ROBDATA*********************
 

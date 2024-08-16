@@ -12,7 +12,17 @@ library(gridExtra)
 
 df_plcohort <- read_xlsx("02_data/cleandata/cohort_df_clean.xlsx")
 
-#*******************************************SMD*******************************************
+
+#****************Multilevel Model for all populations*****************
+#question: is there a difference in the association of cannabis use and psychosis based on the vulnerability-level? (HP vs CHR vs P)
+#all data taken together
+#unit-of-analysis problem because one study investigates multiple outcomes, cannabis-use-levels and time-points
+#application of a multilevel model with subgroups or metaregression moderatoranalysis? 
+#one analysis for SMDs, one for Log Odds ratios or transforming Odds to SMD or point-biseral correlations?
+#unadjusted values 
+
+
+#***********************SMD*******************************************
 #Number of participants in both groups
 # mean and standard deviation 
 #other option SMD  

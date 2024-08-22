@@ -1,9 +1,0 @@
-
-
-# Read the Excel file
-evidencemap_tidy <- as.data.table(read_xlsx("02_data/cleandata/evidencemap_tidy.xlsx"))
-
-studylist_cohort_unique <- as.data.table(read_xlsx("02_data/cleandata/df_studylist_cohort_unique.xlsx"))
-
-evidencemap_tidy[, studylist_cohort_unique := ifelse(id %in% studylist_cohort_unique$id, 1, 0)]
-

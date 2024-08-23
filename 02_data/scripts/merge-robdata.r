@@ -123,7 +123,10 @@ rename(Primary = "Study type")
 dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS, Rob_P_C, Rob_P_R_C)
 
 # Merge all data tables
-merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE)
+merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE, idcol ="source_df")
+
+merged_dt_rob<-merged_dt_rob %>%
+mutate(done_by = ifelse(source_df == "10","Carolina","Riccardo"))
 
 # View the merged data table
 View(merged_dt_rob)

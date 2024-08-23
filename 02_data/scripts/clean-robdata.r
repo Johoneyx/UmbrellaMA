@@ -12,8 +12,8 @@ merged_dt_rob <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/merg
 
 merged_dt_rob <- merged_dt_rob  %>% 
   mutate(firstauthor = ifelse(str_detect(Primary, "et al"), 
-                               str_extract(Primary, ".*(?= et al)"), 
-                               str_extract(Primary, ".*(?=\\()")))
+str_extract(Primary, ".*(?= et al)"), 
+str_extract(Primary, ".*(?=\\()")))
 
 
 # Rename "Schibart" to "Schubart"
@@ -26,31 +26,21 @@ merged_dt_rob <- merged_dt_rob  %>%
   mutate(Year = str_extract(Primary, "\\b\\d{4}\\b"))
 
 
-
 merged_dt_rob$studycode <- paste((gsub("\\s", "",merged_dt_rob$firstauthor)), merged_dt_rob$Year,  sep = "_")
-
-
-View(merged_dt_rob) 
-
-write_xlsx(merged_dt_rob, "02_data/cleandata/merged_dt_rob_clean.xlsx")
 
 
 
 evidencemap_studylist <- read_xlsx("02_data/cleandata/evidencemap_studylist.xlsx")
 
 
-
 evidencemap_studylist <- evidencemap_studylist %>%mutate(reviews = str_replace(reviews, "(\\w+)(\\()", "\\1 \\2"))
 
 
-# Perform the join and create the Year_filledin variable
+# join and create Year_filledin variable that takes the imputed year values from the merged df
 merged_dt_rob <- merged_dt_rob %>%
   left_join(evidencemap_studylist, by = c("First_author" = "authorww", "Review" = "reviews")) %>%
   mutate(Year_filledin = ifelse(is.na(Year), year, Year)) 
 
-View(merged_dt_rob %>% filter(is.na(Year_filledin)))
-
-View(merged_dt_rob)
 
 #manually checked the following years
 #Koning_2008
@@ -92,20 +82,10 @@ if (length(na_rows) == length(study_codes)) {
   stop("The number of NA rows does not match the length of study_codes.")
 }
 
-# View the updated dataframe
-View(merged_dt_rob %>% filter(is.na(Year_filledin)))
 
-# View the entire dataframe
-View(merged_dt_rob)
 
 merged_dt_rob <- merged_dt_rob %>%
   mutate(studycode.y = ifelse(is.na(studycode.y), paste0(First_author, "_", Year_filledin), studycode.y))
-
-# View the updated dataframe
-View(merged_dt_rob %>% filter(is.na(studycode.y)))
-
-# View the entire dataframe
-View(merged_dt_rob)
 
 
 
@@ -114,5 +94,8 @@ merged_dt_rob <- merged_dt_rob %>%
   mutate(across(everything(), ~ str_replace_all(., "\\*\\*", "2"))) %>%
   mutate(across(everything(), ~ str_replace_all(., "\\*", "1")))
 
-# View the updated dataframe
-View(merged_dt_rob)
+
+merged_dt_rob <- merged_dt_rob %>%
+  select(done_by, Review, Primary, studycode = studycode.y, `Study type`, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, TotalStars)
+
+write_xlsx(merged_dt_rob, "02_data/cleandata/merged_dt_rob_clean.xlsx")

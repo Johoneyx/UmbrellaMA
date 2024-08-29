@@ -198,6 +198,7 @@ select(studycode, `cannabis_use`, outcome, PublicationID)
 write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
 
 
+studieswithoutstudytype <- evidencemap_tidy_publicationunique %>%
+filter(is.na(studydesign))
 
-
-
+write.xlsx(studieswithoutstudytype, "02_data/cleandata/withoutstudydesign.xlsx")

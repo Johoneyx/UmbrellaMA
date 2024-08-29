@@ -61,7 +61,11 @@ P_KC <- as.data.table(read_xlsx("02_data/rawdata//New_excel_Carolina_09.10_20.05
 P_KC<- P_KC[!apply(is.na(P_KC), 1, all), ]
 P_KC[, dt_name := "P_KC"]
 
-df_list <- list(HP_S_KD, HP_D_KR, CHR_T_KD, CHR_S_KR, CHR_S_KD, CHR_AR, P_J, HP_J, CHR_J, P_M, P_CJ, P_KC)
+HPP_J <- as.data.table(read_xlsx("02_data/rawdata/Dataextraction_Johanna_14.08.2024.xlsx"))
+HPP_J<- HPP_J[!apply(is.na(HPP_J), 1, all), ]
+HPP_J[, dt_name := "HPP_J"]
+
+df_list <- list(HP_S_KD, HP_D_KR, CHR_T_KD, CHR_S_KR, CHR_S_KD, CHR_AR, P_J, HP_J, CHR_J, P_M, P_CJ, P_KC, HPP_J)
 
 
 # Convert all variables in all dataframes to character type and make variable names lower case
@@ -77,7 +81,7 @@ df_list <- lapply(df_list, function(df) {
 merged_df <- rbindlist(df_list, fill = TRUE, use.names = TRUE)
 
 
-write_xlsx(merged_df, "mergeddata/merged_df.xlsx")
+write_xlsx(merged_df, "02_data/mergeddata/merged_df.xlsx")
 
 View(merged_df)
 

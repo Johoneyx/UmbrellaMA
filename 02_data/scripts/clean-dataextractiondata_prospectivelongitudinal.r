@@ -579,7 +579,7 @@ grid::grid.draw(comp)
 dev.off()
 
 
-#*****************************************CLEAN STATISTICAL DATA******************************************
+#*****************************************CLEAN STATISTICALDATA********************************************************
 
 #sample_size_(total_n)
 #total_n
@@ -637,9 +637,50 @@ dev.off()
 names(df_plcohort)
 
 #*******************CLEAN_ADJUSTED_FACTORS*********************
+#factors accounted for another relevant cell?
 
+# Select the specified columns
+covariates <- df_plcohort %>%
+  select("adjusted_factors_aor", "adjusted_factors_arr", "covariates_ahr", "covariates_ab", "covariates_acorr")
 
+# View the selected columns
+View(covariates)
 
+# Combine all values in each row into a single string and tokenize
+tokens <- covariates %>%
+  unite("combined", everything(), sep = " ") %>%
+  mutate(tokens = str_split(combined, ",|;|\\+|\\band\\b")) %>%
+  unnest(tokens) %>%
+  mutate(tokens = str_trim(tokens)) %>%
+  filter(tokens != "" & != "NA") %>%
+  mutate(tokens = tolower(tokens))
+
+# Table the frequencies of the tokens
+token_frequencies <- table(tokens$tokens)
+
+# View the token frequencies as a data frame
+View(as.data.frame(token_frequencies))
+
+# Combine all values in each row into a single string and tokenize by spaces
+words <- covariates %>%
+  unite("combined", everything(), sep = " ") %>%
+  mutate(words = str_split(combined, "\\s+")) %>%
+  unnest(words) %>%
+  mutate(words = str_trim(words)) %>%
+  filter(words != "" & words != "NA") %>%
+  mutate(words = tolower(words))
+
+# Table the frequencies of the words
+word_frequencies <- table(words$words)
+
+# Convert to data frame and sort by frequency in descending order
+word_frequencies_df <- as.data.frame(word_frequencies) %>%
+  arrange(desc(Freq))
+
+# View the sorted word frequencies
+View(word_frequencies_df)
+# Print the token frequencies
+View(as.data.frame(token_frequencies))
 #********************EXPLORE****************************************
 
 #very helpful table i could use this to decide whether study is relevant *e.g. plamondon incorporates metval metmet level does it make sense to combine those levels into one effectsize
@@ -651,7 +692,7 @@ summarise(
   cannabis_levels = paste(unique(cannabis_level_of_use), collapse =" & "),
   timepoints = paste(unique(followup), collapse =" & "),
   populations = paste(unique(population), collapse =" & "),
-  datarows = n()
+  datarows = n(),
 )
 
 View(summary)
@@ -660,7 +701,7 @@ View(summary)
 
 write_xlsx(summary, "04_visualization/dataexploration.xlsx")
 
-#********************ROBDATA*********************
+#********************ROBDATA***************************************
 
 View(df_plcohort %>%
 select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))

@@ -41,5 +41,4 @@ if studycode !%in% doubleauthorlist {
  
 }
 
-gage, corcoran, bugra, ariashorcajadas, baeza, setien-suero_2019, barrowclough, collizzi, fond_2019, foti_2010, hadden_2018, hides_2006, addington, atkinson, berge, schimmelmann,emsley, marino, oullet-plamondon, rentero, roemrtjomsen_2018, schoeler, clausen 
 

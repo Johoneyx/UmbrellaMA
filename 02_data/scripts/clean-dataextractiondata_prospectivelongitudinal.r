@@ -8,6 +8,8 @@ library(data.table)
 library(readxl)
 library(stringr)
 library(gridExtra)
+library(rlang)
+
 
 merged_df_clean <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/merged_df_clean.xlsx"))
 
@@ -581,6 +583,75 @@ dev.off()
 
 #*****************************************CLEAN STATISTICALDATA********************************************************
 
+#combine the variables that indicate the total samplesize N 
+#sample_size_(total_n)
+#total_n
+#into the new variable N
+
+df_plcohort <- df_plcohort %>%
+mutate(N = coalesce(`sample_size_(total_n)`,
+total_n))
+
+
+df_plcohort <- df_plcohort %>%
+  select(-`sample_size_(total_n)`, -total_n)
+
+print(df_plcohort$N)
+
+
+
+
+
+# Function to evaluate expressions in a string and keep the original value if not an expression
+evaluate_or_keep <- function(x) {
+  if (is.na(x)) {
+    return(NA)
+  }
+  result <- tryCatch({
+    eval(parse(text = x))
+  }, error = function(e) {
+    x
+  })
+  return(result)
+}
+
+# Apply the function to the N column and store the result in a new column N_calculated
+df_plcohort <- df_plcohort %>%
+  mutate(N_calculated = sapply(N, evaluate_or_keep))%>%
+  mutate(n_cu = sapply(n_cu, evaluate_or_keep))%>%
+  mutate(n_ncu = sapply(n_ncu, evaluate_or_keep))%>%
+  mutate(n_outcome = sapply(n_outcome , evaluate_or_keep))%>%
+  mutate(n_no_outcome = sapply(n_no_outcome, evaluate_or_keep))%>%
+  mutate(cu_p = sapply(cu_p, evaluate_or_keep))%>%
+  mutate(ncu_p = sapply(ncu_p, evaluate_or_keep))%>%
+   mutate(cu_np = sapply(cu_np, evaluate_or_keep))%>%
+  mutate(ncu_np = sapply(ncu_np, evaluate_or_keep))%>%
+ mutate(cu_np = sapply(cu_np, evaluate_or_keep))%>%
+  mutate(ncu_np = sapply(ncu_np, evaluate_or_keep))
+
+
+
+
+# View the selected columns
+View(df_plcohort %>%
+  select(
+    N,
+    N_calculated,
+    n_outcome,
+    n_no_outcome,
+    n_cu,
+    n_ncu,
+    cu_p,
+    ncu_p,
+    cu_np,
+    ncu_np
+  ))
+
+
+
+View(df_plcohort)
+
+
 #sample_size_(total_n)
 #total_n
 #"n_outcome"
@@ -709,3 +780,4 @@ select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))
 #**************************************double-check_rob_manually******************************************************
 #double-check missing years manually and add in
 
+write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")

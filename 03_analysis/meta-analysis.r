@@ -21,6 +21,124 @@ df_plcohort <- read_xlsx("02_data/cleandata/cohort_df_clean.xlsx")
 #one analysis for SMDs, one for Log Odds ratios or transforming Odds to SMD or point-biseral correlations?
 #unadjusted values 
 
+#***********************StatsDataframe***************************
+
+
+# Select the specified columns and store the result in df_stats
+df_stats <- df_plcohort %>%
+  select(
+    population,
+    study_type,
+    `prospective?`,
+    cannabis_all,
+    recall_cannabis_use_timeframe,
+    cannabis_use_frequency,
+    cannabis_control,
+    comparision_coded,
+    outcome_clean,
+    outcome_coded,
+    followup,
+    N_calculated,
+    n_outcome,
+    n_no_outcome,
+    n_cu,
+    n_ncu,
+    cu_p,
+    ncu_p,
+    cu_np,
+    ncu_np,
+    n_dcu,
+    mean_dc,
+    sd_dc,
+    or,
+    lci_or,
+    uci_or,
+    p_or,
+    or_direction,
+    aor,
+    lci_aor,
+    uci_aor,
+    p_aor,
+    adjusted_factors_aor,
+    aor_direction,
+    rr,
+    lci_rr,
+    uci_rr,
+    p_rr,
+    rr_direction,
+    arr,
+    lci_arr,
+    uci_arr,
+    p_arr,
+    arr_direction,
+    adjusted_factors_arr,
+    hr,
+    lci_hr,
+    uci_hr,
+    p_hr,
+    timeframe_hr,
+    hr_direction,
+    ahr,
+    lci_ahr,
+    uci_ahr,
+    p_ahr,
+    timeframe_ahr,
+    covariates_ahr,
+    direction_ahr,
+    statistical_method,
+    mean_in_outcome_group = `mean_in__outcome_group`,
+    sd_in_outcome_group = `sd_in_outcome_group`,
+    mean_in_no_outcome_group = `mean_in_no-outcome_group`,
+    sd_in_no_outcome_group = `sd_in_no-outcome_group`,
+    mean_c,
+    sd_c,
+    mean_nc,
+    sd_nc,
+    smd,
+    smd_measure,
+    lci_smd,
+    uci_smd,
+    p_smd = `p(smd)`,
+    b,
+    se_b,
+    p_b,
+    ab,
+    se_ab,
+    p_ab,
+    covariates_ab,
+    `β_lci`,
+    `β_uci`,
+    f_value = `f-value`,
+    other_statistical_method,
+    factor,
+    statistical_parameter,
+    p_value = `p-value`,
+    factors_accounted_for,
+    time_frame,
+    percent_outcome = `%_outcome`,
+    statistical_method,
+    corr,
+    p_corr,
+    acorr,
+    p_acorr,
+    covariates_acorr,
+    percent_chr_transition_to_fep_in_cannabis_groups = `%_of_chr_transition_to_fep_in_cannabis_grups`,
+    se_of_percent_transition_cu = `se_of_%_transition_cu`,
+    percent_chr_transition_to_fep_in_no_cannabis_groups = `%_of_chr_transition_to_fep_in_no-cannabis_grups`,
+    `se_of_%_transition_ncu`,
+    `%_in_outcome_group`,
+    `%_in_no-outcome_group`
+  )
+
+# View the updated df_stats dataframe
+View(df_stats)
+
+
+
+
+
+
+
 
 #***********************SMD*******************************************
 #Number of participants in both groups

@@ -164,7 +164,8 @@ df_plcohort <- df_plcohort %>%
 
 
  df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(`comparision_coded`, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\)", "never"))
+ mutate(comparision_coded = str_replace_all(comparision_coded, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\)", "never"))%>%
+ select(-"comparision(control-group)")
 
 table_comp <- as.data.frame(table(as.factor(df_plcohort$comparision_coded)))
 filtered_table_comp <- filter(table_comp, Freq > 3)
@@ -417,6 +418,8 @@ df_plcohort$followup[is.na(df_plcohort$followup)] <- df_plcohort$followup_durati
 
 #studytype needs to be checked very often cohort but dont know if prospective 
 
+df_plcohort <- df_plcohort %>%
+  select(-`follow-up_duration`, -`followup_duration`)
 
 
 #***************************************CLEAN COUNTRY*****************************************************

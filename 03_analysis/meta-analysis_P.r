@@ -35,7 +35,7 @@ View(df_plcohort_P)
  #"n_ncu"
 
 
-df_P_continous <- df_plcohort %>%
+df_P_continous <- df_plcohort_P %>%
   select(studycode,
     population,
     study_type,

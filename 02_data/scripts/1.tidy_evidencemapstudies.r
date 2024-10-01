@@ -37,7 +37,9 @@ df_map_list <- lapply(df_map_list, function(df) {
 evidencemap_combined <- reduce(df_map_list, full_join)
 
 
-#Create new variables and restructure dataframe (tidy)
+
+
+#Create new variables and restructure dataframe (tidy) 
 evidencemap_combined_restructured <- evidencemap_combined %>%
   mutate(cannabis_use = ifelse(node_type_simple %in% c("Moderator", "Level"), node_label, NA)) %>%  
   fill(cannabis_use) %>%
@@ -51,6 +53,9 @@ evidencemap_combined_restructured <- evidencemap_combined %>%
 mutate(year = str_extract(node_label, "\\d{4}")) 
 
 evidencemap_filtered <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(firstauthor)) 
+
+
+View(evidencemap_filtered)
 
 evidencemap_tidy<- evidencemap_filtered %>%
 mutate(firstauthor = str_replace_all(firstauthor, "et al", "")) %>%
@@ -78,8 +83,9 @@ mutate(firstauthor = str_replace_all(firstauthor, "Schimmelman","Schimmelmann"))
 mutate(firstauthor = str_replace_all(firstauthor, "Arsenault ", "Arseneault")) %>% 
 mutate(firstauthor = str_replace_all(firstauthor, "Arsenault","Arseneault")) %>% 
 mutate(firstauthor = str_replace_all(firstauthor, "Donoghue", "O’Donoghue")) %>% 
-mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))%>% 
-mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% mutate(firstauthor = str_replace_all(firstauthor, "Sorbaca", "Sorbara"))%>%
+mutate(firstauthor = str_replace_all(firstauthor, "Focking", "Foecking")) %>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Oullette-Plamondon", "Oullett-Plamondon"))%>% 
+mutate(firstauthor = str_replace_all(firstauthor, "Sorbaca", "Sorbara"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Bloeman", "Bloemen"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Kristensen and Cadenhead", "Kristensen"))%>%
 mutate(firstauthor = str_replace_all(firstauthor, "Oullett-Plamondon", "Ouellet-Plamondon"))%>%
@@ -151,14 +157,141 @@ mutate(studycode = str_replace_all(studycode, "bloemen_2010", "bloemen_2009"))%>
 mutate(studycode = str_replace_all(studycode,  "bhattacharya_2020", "patel_2016"))
 
 
+#give the same studycode (firstauthor_year) the same number
  evidencemap_tidy <- evidencemap_tidy %>%
   group_by(studycode) %>%
-  mutate(PublicationID = cur_group_id())
+  mutate(PublicationID = cur_group_id())%>%
+  arrange(studycode)
+
+View(evidencemap_tidy)
+
+
+#**************************************************************Create_Studylist***********************************************************
+# here I created a list of all the studies with info on how the 
+#shortform
+
+evidencemap_studylist <- evidencemap_tidy %>%
+  group_by(studycode) %>%
+  summarize(
+    studydesign = paste(unique(studydesign), collapse = "; "),
+    outcomes = paste(unique(Topic), collapse = "; "),
+    populations = paste(unique(population), collapse = "; "),
+    cannabis_levels = paste(unique(cannabis_use), collapse = "; "),
+    reviews = paste(unique(reviews), collapse = "; ")
+  ) %>%
+  ungroup()
+
+View(evidencemap_studylist)
+
+#*****************************************************************************************************************************************
+
+#code potential prospective longitudinal cohort studies 
+
+
+evidencemap_studylist <- evidencemap_studylist %>%
+mutate(prospective_longitudinal = case_when(
+    str_detect(studydesign, "prospective cohort") ~ "yes",
+    str_detect(studydesign, "longitudinal|cohort") ~ "maybe",
+    TRUE ~ "no"
+  ))
+
+
+View(evidencemap_studylist)
+
+
+table(evidencemap_studylist$Exclusion_coded)
+
+
+#I checked some of the studies manually already
+studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
+
+#join with the studylist 
+evidencemap_studylist <- evidencemap_studylist %>%
+left_join(studies_to_check %>% select(studycode,Exclusion_coded,citation,Comment,Check), by = "studycode") 
+
+
+evidencemap_studylist <- evidencemap_studylist %>%
+mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded))
+
+
+studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
+
+
+df_studylist_cohort_unique_extracted <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/cohort_df_clean.xlsx")
+
+
+df_extracted_short <- df_studylist_cohort_unique_extracted %>%
+  group_by(studycode) %>%
+  select(studycode, study_type, `prospective?`) %>%
+  summarize(
+    studytype_extracted = paste(unique(study_type), collapse = "; "),
+    prospective_extracted = paste(unique(`prospective?`), collapse = "; ")
+  ) %>%
+  ungroup()
+
+
+View(df_extracted_short)
+
+
+evidencemap_studylist <- evidencemap_studylist %>%
+left_join(df_extracted_short, by="studycode")
+
+View(evidencemap_studylist)
+
+#**********************************get_info_from_extraction***********
+
+
+filtered_studies <- evidencemap_studylist %>%
+  filter(is.na(Exclusion_coded) & prospective_longitudinal == "maybe")
+
+
+filtered_studies <- filtered_studies %>%
+left_join(df_extracted_short, by="studycode")
+
+View(filtered_studies)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 evidencemap_tidy <- evidencemap_tidy %>%
-  mutate(unique = ifelse(duplicated(PublicationID), 1, 0))
-
-  evidencemap_tidy <- evidencemap_tidy %>%
   mutate(unique_study_pop= ifelse(duplicated(study_year_psycont), 1, 0))
 
 
@@ -176,10 +309,7 @@ studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/
 evidencemap_tidy <- evidencemap_tidy %>%
   left_join(studies_to_check %>% select(studycode,Exclusion_coded,citation), by = "studycode")
 
-#take the values from the exclusion coded and citation and fill them in in those cases with the same studycode
-evidencemap_tidy <- evidencemap_tidy %>%
-  group_by(studycode) %>%
-  fill(Exclusion_coded, citation, .direction = "downup")
+
 
 evidencemap_tidy <- evidencemap_tidy %>%
 mutate(excluded = ifelse(!is.na(Exclusion_coded), 1, 0))

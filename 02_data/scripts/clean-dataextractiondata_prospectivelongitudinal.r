@@ -31,7 +31,6 @@ colnames(df_plcohort) <- gsub(" ", "_", colnames(df_plcohort))
 #clean lifetime variable 
 df_plcohort$"lifetime_cannabis_use" <-  tolower(df_plcohort$"lifetime_cannabis_use")
 
-
 df_plcohort <- df_plcohort %>%
   mutate(`lifetime_cannabis_use` = str_replace_all(`lifetime_cannabis_use`, c("age of use" = "age of onset", "current cannabis use" = "current", "current use"="current", "last 12-month use" = "last year","last 6-month use"= "last six months", "lifetime_cannabis_use" = "lifetime", "lifetime use" = "lifetime", "past month" = "last month", "past 30 days cannabis use" = "last month", "past year use" = "last year use", "prior six months" = "last six months", "recent use (last month)" = "last month", "last 12-month cannabis use" = "last year", "cannabis use in previous 90 days" = " last three months", "last month use" = "last month")))
 
@@ -62,7 +61,6 @@ df_plcohort$cannabis_all <-  tolower(df_plcohort$cannabis_all)
 df_plcohort <- df_plcohort %>%
   mutate(`cannabis_all` = str_replace_all(`cannabis_all`, ("ocassiaonl|ocassiaonl"), "occasional"))
 
-
 df_plcohort <- df_plcohort %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "less than", "<")) %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "at least", ">="))%>%
@@ -90,6 +88,7 @@ df_plcohort <- df_plcohort %>%
 #mark cannabis use level or frequency related words with [word]
 df_plcohort <- df_plcohort %>%
   mutate(cannabis_all = str_replace_all(cannabis_all, "(severity|several|frequent|frequency|infrequent|occasional|abuse|dependence|abstinent|cannabis use disorder|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud|cannabis use disorder|without impairment|with cannabis-induced aps|/week|/day|/month|/year|years|times|days|five|sistematic|almost|in remission|<|>|=|-)", "[\\1]"))
+
 
 
 #put all the star-words into the recall_cannabis_use_timeframe variable 
@@ -163,9 +162,10 @@ df_plcohort <- df_plcohort %>%
  mutate(comparision_coded = str_replace_all(comparision_coded, "(no cannbis use during the study|no-use|no cannabis use|no use of marijuana|no use or dependence|non-users|non consumers|non users)", "no use"))
 
 
- df_plcohort <- df_plcohort %>%
- mutate(comparision_coded = str_replace_all(comparision_coded, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\)", "never"))%>%
- select(-"comparision(control-group)")
+df_plcohort <- df_plcohort %>%
+  mutate(comparision_coded = str_replace_all(comparision_coded, "(neverd|neverrs \\(negative urine test\\)|never of cannabis|never users \\(negative urine test\\))", "never")) %>%
+  select(-"comparision(control-group)")
+
 
 table_comp <- as.data.frame(table(as.factor(df_plcohort$comparision_coded)))
 filtered_table_comp <- filter(table_comp, Freq > 3)
@@ -253,16 +253,8 @@ df_plcohort %>%
   unique() %>%
   print()
 
-# Select and view the specified variables
-df_selected <- df_plcohort %>%
-  select(outcome_clean, outcome_measure)
 
-View(df_selected)
 
-df_outcome_stats <- df_plcohort %>%
-  select(outcome_clean, outcome_measure, outcome_measure_coded,mean_c,sd_c, mean_nc, sd_nc, or, lci_or,uci_or,aor,lci_aor,uci_aor,cu_p,ncu_p,cu_np,ncu_np)
-
-View(df_outcome_stats)
 
 df_plcohort <- df_plcohort %>%
 mutate("outcome_measure_clean"= toupper(outcome_measure))
@@ -394,15 +386,7 @@ dev.off()
 #study_type
 #survival_curve?
 
-df_followup <-df_plcohort %>%
-select("follow-up_duration","cannabis__&_outcome_analysis_timeframe","time_frame_(cannabis_use_and_outcome_measure_time)","time_frame","recall?","followup_duration","study_type", "timeframe_hr", "prospective?", "outcome_clean", "followup_combined", "followup")
 
-View(df_followup)
-
-summary(df_followup)
-unique(df_followup$followup_duration)
-table(df_followup)
-sum(is.na())
 
 
 #create a new variable followup that is a combination of follow-up_duration and followup_duration
@@ -603,8 +587,6 @@ print(df_plcohort$N)
 
 
 
-
-
 # Function to evaluate expressions in a string and keep the original value if not an expression
 evaluate_or_keep <- function(x) {
   if (is.na(x)) {
@@ -779,6 +761,16 @@ write_xlsx(summary, "04_visualization/dataexploration.xlsx")
 
 View(df_plcohort %>%
 select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))
+
+#********************Create_Follow-Up_Code*********************
+
+
+
+#********************Create_Comparision_Code******************
+
+#********************Create_Outcome_Code***********************
+
+
 
 #**************************************double-check_rob_manually******************************************************
 #double-check missing years manually and add in

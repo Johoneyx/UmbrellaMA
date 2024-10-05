@@ -8,6 +8,8 @@ library(stringr)
 library(purrr)
 library(openxlsx)
 
+#********************************************************Clean_and_Tidy_Evidencemap_Network_Studies*********************
+
 #read in different data files of all the populations
 df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet=1) %>%
   as.data.frame() %>%
@@ -35,8 +37,6 @@ df_map_list <- lapply(df_map_list, function(df) {
 
 # Join all the data frames together using a full join
 evidencemap_combined <- reduce(df_map_list, full_join)
-
-
 
 
 #Create new variables and restructure dataframe (tidy) 
@@ -165,9 +165,19 @@ mutate(studycode = str_replace_all(studycode,  "bhattacharya_2020", "patel_2016"
 
 View(evidencemap_tidy)
 
+#resulting dataframe evidencemap tidy includes all the systematic reviews and meta-analyses with all their primary studies listed so that duplicates are included 
+#studycode = author_year
+write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
+
+
+
+
 
 #**************************************************************Create_Studylist***********************************************************
-# here I created a list of all the studies with info on how the 
+# here I created a list of all the studies collapsing those with the same studycode
+# doesnt include stats info
+# only includes studydesign, outcomes, populations, levels, reviews
+# as the reviews gave different information on these, they may have several different values separated by semicolons 
 #shortform
 
 evidencemap_studylist <- evidencemap_tidy %>%
@@ -181,13 +191,8 @@ evidencemap_studylist <- evidencemap_tidy %>%
   ) %>%
   ungroup()
 
-View(evidencemap_studylist)
-
-#*****************************************************************************************************************************************
-
-#code potential prospective longitudinal cohort studies 
-
-
+#code potential prospective longitudinal cohort studies
+#maybe are those studies where the authors said they are longitudinal or a cohort study but its not really sure whether those are really prospective
 evidencemap_studylist <- evidencemap_studylist %>%
 mutate(prospective_longitudinal = case_when(
     str_detect(studydesign, "prospective cohort") ~ "yes",
@@ -199,38 +204,64 @@ mutate(prospective_longitudinal = case_when(
 View(evidencemap_studylist)
 
 
-table(evidencemap_studylist$Exclusion_coded)
+#**************************************************Combine with manually checked Info *************************************************
+#those that are labelled maybe or even have no info at all on studytype need to be manually checked
 
-
-#I checked some of the studies manually already
+#I checked some of the studies manually already some time ago
 studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
 
 #join with the studylist 
 evidencemap_studylist <- evidencemap_studylist %>%
 left_join(studies_to_check %>% select(studycode,Exclusion_coded,citation,Comment,Check), by = "studycode") 
 
+view(evidencemap_studylist)
+
 
 evidencemap_studylist <- evidencemap_studylist %>%
-mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded))
+mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded)) 
 
+table(evidencemap_studylist$Exclusion_coded)
 
-studies_to_check <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/manuallycheckeddata/studies_to_check_JMG_10.06.xlsb.xlsx")
+#in the manual check I also excluded some studies that are double-publications(this means that the same cohort has been published in several different papers. I would decide either based on whether the number of participants is greater, or whether the reporting format of the statisticla analyses is more suitable for our purposes
+#reasons for exclusion: not prospective longitudinal, no relevant outcome, double-publication
 
+included_studies <- evidencemap_studylist %>%
+filter(is.na(evidencemap_studylist$Exclusion_coded))
 
-df_studylist_cohort_unique_extracted <- read_excel("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/cohort_df_clean.xlsx")
+#N:147
+view(included_studies)
 
+#**************************************************************READ_IN_AND_CLEAN_EXTRACTED_DATA*************************************************
 
-df_extracted_short <- df_studylist_cohort_unique_extracted %>%
+#which one is the right one?
+#df_extracted is not fully cleaned as it has all the studies extracted not just the prospective longitudinals. i wrote a script to clean the prospective longitudinals. i can run that over the merged_df_clean later so that all the variables are cleaned a bit better
+df_extracted <- read_excel("02_data/cleandata/merged_df_clean.xlsx")
+
+View(df_extracted)
+
+#choose the relevant variables that interest me now to get an overview and collapse them (as there are different rows for the timepoints and statistical datapoints that have been extracted)
+df_extracted_short <- df_extracted %>%
   group_by(studycode) %>%
-  select(studycode, study_type, `prospective?`) %>%
+  select(all_of(c("studycode", "prospective?", "comment", "relevant", "any issues?", "titel", "cohort", "cohort more detail", "dataextraction", "extracted by", "doublechecked by", "citation", "reference", "followup duration", "follow-up duration", "kind of psychosis", "fep vs chronic", "cannabis level of use", "comparision(control-group)", "time frame (cannabis use and outcome measure time)", "time frame", "cannabis use timeframe", "continuation of use timeframe", "continued use", "discontinued use", "cannabis measure"))) %>%
   summarize(
-    studytype_extracted = paste(unique(study_type), collapse = "; "),
-    prospective_extracted = paste(unique(`prospective?`), collapse = "; ")
+    prospective_extracted = paste(unique(`prospective?`), collapse = "; "),
+    comment_extraction = paste(unique(c(comment, relevant, `any issues?`)), collapse = "; "),
+    paper_title = paste(unique(titel), collapse = "; "),
+    cohort_combined = paste(unique(c(cohort, `cohort more detail`)), collapse = "; "),
+    #country = paste(unique(country), collapse = "; "),
+    #target_population = paste(unique(population), collapse = "; "),
+    extracted_doublechecked = paste(unique(c(dataextraction, `extracted by`, `doublechecked by`)), collapse = "; "),
+    reference = paste(unique(c(citation, reference)), collapse = "; "),
+    `follow-up` = paste(unique(c(`followup duration`, `follow-up duration`)), collapse = "; "),
+    psychosis_type = paste(unique(c(`kind of psychosis`, `fep vs chronic`)), collapse = "; "),
+    cannabis_levels = paste(unique(c(`cannabis level of use`, `comparision(control-group)`, `time frame (cannabis use and outcome measure time)`,`time frame`, `cannabis use timeframe`, `continuation of use timeframe`, `continued use`, `discontinued use`, `cannabis measure`)), collapse = "; ")
   ) %>%
   ungroup()
 
+  
 
 View(df_extracted_short)
+names(df_extracted_short)
 
 
 evidencemap_studylist <- evidencemap_studylist %>%
@@ -238,7 +269,7 @@ left_join(df_extracted_short, by="studycode")
 
 View(evidencemap_studylist)
 
-#**********************************get_info_from_extraction***********
+
 
 
 filtered_studies <- evidencemap_studylist %>%
@@ -252,10 +283,9 @@ View(filtered_studies)
 
 
 
+names(df_studylist_cohort_unique_extracted)
 
-
-
-
+names(df_extracted)
 
 
 

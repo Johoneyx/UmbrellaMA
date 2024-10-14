@@ -220,8 +220,9 @@ view(evidencemap_studylist)
 evidencemap_studylist <- evidencemap_studylist %>%
 mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded)) %>%
 mutate(Exclusion_coded = ifelse(str_detect(cannabis_levels,"cannabis-induced psychotic disorder") , "no relevant predictor", Exclusion_coded)) %>% 
-mutate(Exclusion_coded = ifelse(studycode =="henquet_2004" , "wrong citation", Exclusion_coded))  
-
+mutate(Exclusion_coded = ifelse(studycode =="henquet_2004" , "wrong citation", Exclusion_coded))%>%   
+mutate(Exclusion_coded = ifelse(studycode =="ariashorcajadas_2002" , "paper not found", Exclusion_coded))%>% 
+mutate(Exclusion_coded = ifelse(studycode =="" , "cannabis use data not reported", Exclusion_coded)) 
 
 table(evidencemap_studylist$Exclusion_coded)
 

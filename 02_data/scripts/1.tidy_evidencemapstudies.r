@@ -8,7 +8,7 @@ library(stringr)
 library(purrr)
 library(openxlsx)
 
-#********************************************************Clean_and_Tidy_Evidencemap_Network_Studies*********************
+#********************************************************Clean_and_Tidy_Evidencemap_Network_Studies**************************************************************************************
 
 #read in different data files of all the populations
 df_HP_map <- read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/rawdata/evidencemapdata_Feb24.xlsx", sheet=1) %>%
@@ -33,7 +33,7 @@ df_map_list <-list(df_HP_map = df_HP_map, df_CHR_map = df_CHR_map, df_P_map = df
 df_map_list <- lapply(df_map_list, function(df) {
   df[] <- lapply(df, as.character)
   return(df)
-})
+} )
 
 # Join all the data frames together using a full join
 evidencemap_combined <- reduce(df_map_list, full_join)
@@ -55,7 +55,7 @@ mutate(year = str_extract(node_label, "\\d{4}"))
 evidencemap_filtered <- evidencemap_combined_restructured %>% filter(node_type_simple == "Primary_Study" & !is.na(firstauthor)) 
 
 
-View(evidencemap_filtered)
+
 
 evidencemap_tidy<- evidencemap_filtered %>%
 mutate(firstauthor = str_replace_all(firstauthor, "et al", "")) %>%
@@ -163,7 +163,7 @@ mutate(studycode = str_replace_all(studycode,  "bhattacharya_2020", "patel_2016"
   mutate(PublicationID = cur_group_id())%>%
   arrange(studycode)
 
-View(evidencemap_tidy)
+
 
 #resulting dataframe evidencemap tidy includes all the systematic reviews and meta-analyses with all their primary studies listed so that duplicates are included 
 #studycode = author_year
@@ -218,7 +218,10 @@ view(evidencemap_studylist)
 
 
 evidencemap_studylist <- evidencemap_studylist %>%
-mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded)) 
+mutate(Exclusion_coded = ifelse(prospective_longitudinal == "no", "not prospective longitudinal", Exclusion_coded)) %>%
+mutate(Exclusion_coded = ifelse(str_detect(cannabis_levels,"cannabis-induced psychotic disorder") , "no relevant predictor", Exclusion_coded)) %>% 
+mutate(Exclusion_coded = ifelse(studycode =="henquet_2004" , "wrong citation", Exclusion_coded))  
+
 
 table(evidencemap_studylist$Exclusion_coded)
 
@@ -258,34 +261,114 @@ df_extracted_short <- df_extracted %>%
   ) %>%
   ungroup()
 
-  
+#[8] "diagnostic tool"
 
 View(df_extracted_short)
 names(df_extracted_short)
 
-
+#----------------------------------------MERGE STUDYLIST WITH EXTRACTED DATA ------------------------------------------------------
 evidencemap_studylist <- evidencemap_studylist %>%
 left_join(df_extracted_short, by="studycode")
 
 View(evidencemap_studylist)
 
+#only look at those studies that are not excluded
+evidencemap_studylist %>%
+filter(is.na(Exclusion_coded))%>%
+view() 
+
+#only those that are not yet extracted
+
+evidencemap_studylist %>%
+filter(is.na(Exclusion_coded) & is.na(extracted_doublechecked) & is.na(TotalStars)) %>%
+view()
+
+
+#---------------------------------------Read in and collapse robdata --------------------------------------------------------------------
+
+#it seems like we extracted some of the rob double so I collapse those values to have a unique rob. worth doublechecking values that differ later
+df_rob_extracted <- read_excel("02_data/cleandata/df_rob_clean.xlsx")
+
+df_rob_extracted <- df_rob_extracted %>% 
+group_by(studycode) %>% 
+summarize(
+  studytype_ROB = paste(unique(`Study type`), collapse = "; "),
+  Q1 = paste(unique(`Q1`), collapse = "; "),
+  Q2 = paste(unique(`Q2`), collapse = "; "),
+  Q3 = paste(unique(`Q3`), collapse = "; "),
+  Q4 = paste(unique(`Q4`), collapse = "; "),
+  Q5 = paste(unique(`Q5`), collapse = "; "),
+  Q6 = paste(unique(`Q6`), collapse = "; "),
+  Q7 = paste(unique(`Q7`), collapse = "; "),
+  Q8 = paste(unique(`Q8`), collapse = "; "),
+  TotalStars = paste(unique(`TotalStars`), collapse = "; "),
+)%>% 
+view()
+
+#---------------------------------------Merge STUDYLIST WITH ROB DATA ---------------------------------------------------------------------
+
+evidencemap_studylist <- evidencemap_studylist %>%
+  left_join(df_rob_extracted, by="studycode")
+
+view(evidencemap_studylist)
+
+
+evidencemap_studylist %>%
+filter(is.na(Exclusion_coded) & is.na(extracted_doublechecked) & is.na(TotalStars)) %>%
+view()
+
+
+studylist_meta_analysis <- evidencemap_studylist %>%
+filter(is.na(Exclusion_coded))%>%
+arrange(populations)%>%
+view()
+
+write_xlsx(studylist_meta_analysis, "02_data/cleandata/studylist_meta-analysis.xlsx")
+
+#check the data that has been extracted but doesnt have any rob data. Either it has not been extracted, or it has been extracted and is somewhere on the other pc, or the cleaning didnt include the data and i need to recheck the script 
+# 6.10.2024
+#bei 27 robs scheinen die Jahre falsch zu sein oder falsch geschrieben 2-3 scheinen nicht extrahiert worden zu sein (e.g. emsley, barrowclough)
+# koennte daran liegen das am ende gar nicht relevant, weil doch niciht prospective longitudinal
+# muss herausfinden ob wirklich prospective longitudinal 
+#konings koning 
+#hatte ich das nihct mal vor ewigkeiten kontrolliert? 
+#ich koennte schauen ob das im citavi steht
+
+
+#corcoran 2008
+
+#dragt 2011
+
+#mizrahi 2014
+
+#dragt 2011
+
+#buchy 2015
+
+#weiser 2002
+
+#bechtold 2016
+
+#arseneault 2002
+
+#zammit 2011
+
+#baeza 2009
+
+#schimmelmann 2012
+
+#ariashorcajadas 2002
+
+#barrowlclough 2013
+
+#barrowclough 2015
+
+#fond2019
+
+#foti2010
 
 
 
-filtered_studies <- evidencemap_studylist %>%
-  filter(is.na(Exclusion_coded) & prospective_longitudinal == "maybe")
-
-
-filtered_studies <- filtered_studies %>%
-left_join(df_extracted_short, by="studycode")
-
-View(filtered_studies)
-
-
-
-names(df_studylist_cohort_unique_extracted)
-
-names(df_extracted)
 
 
 
@@ -302,24 +385,7 @@ names(df_extracted)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#----------------------------------this part is for the flowchart, check later--------------------------------
 
 evidencemap_tidy <- evidencemap_tidy %>%
   mutate(unique_study_pop= ifelse(duplicated(study_year_psycont), 1, 0))
@@ -361,4 +427,7 @@ write.xlsx(idstocheck, "02_data/cleandata/idstocheck.xlsx")
 studieswithoutstudytype <- evidencemap_tidy_publicationunique %>%
 filter(is.na(studydesign))
 
-write.xlsx(studieswithoutstudytype, "02_data/cleandata/withoutstudydesign.xlsx")
+write_xlsx(studieswithoutstudytype, "02_data/cleandata/withoutstudydesign.xlsx")
+
+
+

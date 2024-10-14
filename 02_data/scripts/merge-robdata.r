@@ -120,19 +120,50 @@ View(Rob_P_C)
 Rob_P_C <- Rob_P_C %>%
 rename(Primary = "Study type")
 
-Rob_HPP_J <- as.data.table(read_xlsx("02_data/rawdata/Rob_JMG_25.8.2024.xlsx"))
+Rob_HPP_J <- as.data.table(read_xlsx("02_data/rawdata/Rob_JMG_06.10.2024.xlsx"))
 
-dt_list_rob <- list(Rob_HP_S_R_CS,Rob_HP_S_R_Cohort, Rob_HP_D_R_CS, Rob_HP_D_R_Cohort,Rob_CHR_T_R_Cohort, Rob_CHR_T_R_CC, Rob_CHR_S_R_CS, Rob_P_R_CC, Rob_P_R_CS, Rob_P_C, Rob_P_R_C, Rob_HPP_J)
 
-# Merge all data tables
-merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE, idcol ="source_df")
 
+# List of data tables
+dt_list_rob <- list(
+  Rob_HP_S_R_CS = Rob_HP_S_R_CS,
+  Rob_HP_S_R_Cohort = Rob_HP_S_R_Cohort,
+  Rob_HP_D_R_CS = Rob_HP_D_R_CS,
+  Rob_HP_D_R_Cohort = Rob_HP_D_R_Cohort,
+  Rob_CHR_T_R_Cohort = Rob_CHR_T_R_Cohort,
+  Rob_CHR_T_R_CC = Rob_CHR_T_R_CC,
+  Rob_CHR_S_R_CS = Rob_CHR_S_R_CS,
+  Rob_CHR_S_R_Cohort = Rob_CHR_S_R_Cohort,
+  Rob_P_R_CC = Rob_P_R_CC,
+  Rob_P_R_CS = Rob_P_R_CS,
+  Rob_P_C = Rob_P_C,
+  Rob_P_R_C = Rob_P_R_C,
+  Rob_HPP_J = Rob_HPP_J
+)
+
+# Merge all data tables and keep the source data table name
+merged_dt_rob <- rbindlist(dt_list_rob, fill = TRUE, idcol = "source_df")
+
+# Update the done_by column based on the source_df
 merged_dt_rob <- merged_dt_rob %>%
-  mutate(done_by = ifelse(source_df == "10", "Carolina",
-                   ifelse(source_df == "12", "Johanna", "Riccardo")))
+  mutate(done_by = case_when(
+    source_df == "Rob_HP_S_R_CS" ~ "Riccardo",
+    source_df == "Rob_HP_S_R_Cohort" ~ "Riccardo",
+    source_df == "Rob_HP_D_R_CS" ~ "Riccardo",
+    source_df == "Rob_HP_D_R_Cohort" ~ "Riccardo",
+    source_df == "Rob_CHR_T_R_Cohort" ~ "Riccardo",
+    source_df == "Rob_CHR_T_R_CC" ~ "Riccardo",
+    source_df == "Rob_CHR_S_R_CS" ~ "Riccardo",
+    source_df == "Rob_CHR_S_R_Cohort" ~ "Riccardo",
+    source_df == "Rob_P_R_CC" ~ "Riccardo",
+    source_df == "Rob_P_R_CS" ~ "Riccardo",
+    source_df == "Rob_P_C" ~ "Carolina",
+    source_df == "Rob_P_R_C" ~ "Riccardo",
+    source_df == "Rob_HPP_J" ~ "Johanna",
+    TRUE ~ "Unknown"
+  ))
 
 # View the merged data table
 View(merged_dt_rob)
 
 write_xlsx(merged_dt_rob, "C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/mergeddata/merged_dt_rob.xlsx")
-

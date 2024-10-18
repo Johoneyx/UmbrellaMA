@@ -64,7 +64,7 @@ dat <- dat %>%
 dat <- escalc(measure = "SMD", 
                       m1i = mean_c, sd1i = sd_c, n1i = n_cu, 
                       m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu, 
-                      data = dat, slab=paste("Study", study, "Estimate", esid)) 
+                      data = dat, slab=paste("Study", studycode, "Estimate", esid)) 
                                       
                       
 

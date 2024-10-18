@@ -13,7 +13,7 @@ library(rlang)
 
 merged_df_clean <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/merged_df_clean.xlsx"))
 
-studylist_cohort <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/df_studylist_cohort_unique.xlsx"))
+studylist_cohort <- (read_xlsx("C:/Users/johan/Documents/PhD/UmbrellaMA/02_data/cleandata/studylist_meta-analysis.xlsx"))
 
 merged_df_clean <- merged_df_clean %>% 
 mutate(relevant = ifelse(studycode %in% studylist_cohort$studycode, 1, 0 ))
@@ -21,6 +21,9 @@ mutate(relevant = ifelse(studycode %in% studylist_cohort$studycode, 1, 0 ))
 
 df_plcohort <- merged_df_clean %>% 
   filter(relevant == 1)
+
+
+view(df_plcohort)
 
 colnames(df_plcohort) <- gsub(" ", "_", colnames(df_plcohort))
 
@@ -53,7 +56,7 @@ df_plcohort <- df_plcohort %>%
 
 #combine data in new variable to get all info
 df_plcohort <- df_plcohort %>%
-mutate(cannabis_all = str_c(lifetime_cannabis_use, cannabis_level_of_use,  sep = " "))
+mutate(cannabis_all = str_c(lifetime_cannabis_use, cannabis_level_of_use, `comparison(control-group)`, sep = "; "))
 
 df_plcohort$cannabis_all <-  tolower(df_plcohort$cannabis_all)
 
@@ -87,30 +90,29 @@ df_plcohort <- df_plcohort %>%
 
 #mark cannabis use level or frequency related words with [word]
 df_plcohort <- df_plcohort %>%
-  mutate(cannabis_all = str_replace_all(cannabis_all, "(severity|several|frequent|frequency|infrequent|occasional|abuse|dependence|abstinent|cannabis use disorder|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud|cannabis use disorder|without impairment|with cannabis-induced aps|/week|/day|/month|/year|years|times|days|five|sistematic|almost|in remission|<|>|=|-)", "[\\1]"))
-
+  mutate(cannabis_all = str_replace_all(cannabis_all, "(severity|several|frequent|frequency|infrequent|occasional|abuse|dependence|abstinent|cannabis use disorder|misuse|mild or heavy|heavy|light|any|moderate|regular|substance use disorder|cud|cannabis use disorder|without impairment|with cannabis-induced aps|/week|/day|/month|/year|years|times|days|five|sistematic|almost|in remission|<|>|=|-|\\d+)", "[\\1]"))
 
 
 #put all the star-words into the recall_cannabis_use_timeframe variable 
 df_plcohort <- df_plcohort %>%
   mutate(recall_cannabis_use_timeframe = sapply(str_extract_all(cannabis_all, "\\*([^*]+)\\*"), function(x) paste(x, collapse = " ")))
 
-View(as.data.frame(df_plcohort$recall_cannabis_use_timeframe))
+#View(as.data.frame(df_plcohort$recall_cannabis_use_timeframe))
 
 #put all the words in brackets in the cannabis use frequency variable
 df_plcohort <- df_plcohort %>%
   mutate(cannabis_use_frequency = sapply(str_extract_all(cannabis_all, "\\[([^\\]]+)\\]"), function(x) paste(x, collapse = " ")))
 
 
-View(as.data.frame(df_plcohort$cannabis_use_frequency))
+#View(as.data.frame(df_plcohort$cannabis_use_frequency))
 
-View(df_plcohort)
+#View(df_plcohort)
 
 #look at the levels that occur most in the recall timeframe variable
 table_lifetime <- as.data.frame(table(as.factor(df_plcohort$recall_cannabis_use_timeframe)))
 filtered_table_lifetime <- filter(table_lifetime, Freq > 3)
 
-View(filtered_table_lifetime)
+#View(filtered_table_lifetime)
 
 # Convert the data frame to a grid table
 table_grob<- gridExtra::tableGrob(filtered_table_lifetime)
@@ -603,16 +605,16 @@ evaluate_or_keep <- function(x) {
 # Apply the function to the N column and store the result in a new column N_calculated
 df_plcohort <- df_plcohort %>%
   mutate(N_calculated = sapply(N, evaluate_or_keep))%>%
-  mutate(n_cu = sapply(n_cu, evaluate_or_keep))%>%
-  mutate(n_ncu = sapply(n_ncu, evaluate_or_keep))%>%
-  mutate(n_outcome = sapply(n_outcome , evaluate_or_keep))%>%
-  mutate(n_no_outcome = sapply(n_no_outcome, evaluate_or_keep))%>%
-  mutate(cu_p = sapply(cu_p, evaluate_or_keep))%>%
-  mutate(ncu_p = sapply(ncu_p, evaluate_or_keep))%>%
-   mutate(cu_np = sapply(cu_np, evaluate_or_keep))%>%
-  mutate(ncu_np = sapply(ncu_np, evaluate_or_keep))%>%
- mutate(cu_np = sapply(cu_np, evaluate_or_keep))%>%
-  mutate(ncu_np = sapply(ncu_np, evaluate_or_keep))
+  mutate(n_cu_calculated = sapply(n_cu, evaluate_or_keep))%>%
+  mutate(n_ncu_calculated = sapply(n_ncu, evaluate_or_keep))%>%
+  mutate(n_outcome_calculated = sapply(n_outcome , evaluate_or_keep))%>%
+  mutate(n_no_outcome_calculated = sapply(n_no_outcome, evaluate_or_keep))%>%
+  mutate(cu_p_calculated = sapply(cu_p, evaluate_or_keep))%>%
+  mutate(ncu_p_calculated = sapply(ncu_p, evaluate_or_keep))%>%
+   mutate(cu_np_calculated = sapply(cu_np, evaluate_or_keep))%>%
+  mutate(ncu_np_calculated = sapply(ncu_np, evaluate_or_keep))%>%
+ mutate(cu_np_calculated = sapply(cu_np, evaluate_or_keep))%>%
+  mutate(ncu_np_calculated = sapply(ncu_np, evaluate_or_keep))
 
 
 
@@ -623,20 +625,29 @@ View(df_plcohort %>%
     N,
     N_calculated,
     n_outcome,
+    n_outcome_calculated,
     n_no_outcome,
+    n_no_outcome_calculated,
     n_cu,
+    n_cu_calculated,
     n_ncu,
+    n_ncu_calculated,
     cu_p,
+    cu_p_calculated,
     ncu_p,
+    ncu_p_calculated,
     cu_np,
-    ncu_np
+    cu_np_calculated,
+    ncu_np,
+    ncu_np_calculated
   ))
 
 
 
-View(df_plcohort)
+df_plcohort <- df_plcohort %>%
+  mutate(across(everything(), ~ str_replace_all(., "Invalid Number", "NA")))
 
-
+write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")
 #sample_size_(total_n)
 #total_n
 #"n_outcome"
@@ -775,4 +786,3 @@ select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))
 #**************************************double-check_rob_manually******************************************************
 #double-check missing years manually and add in
 
-write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")

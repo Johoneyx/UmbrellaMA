@@ -34,68 +34,11 @@ View(df_plcohort_HP)
  #"n_ncu"
 
 
-df_HP_continous <- df_plcohort_HP %>%
-  select(studycode,
-    population,
-    study_type,
-    `prospective?`,
-    cannabis_all,
-    recall_cannabis_use_timeframe,
-    cannabis_use_frequency,
-    cannabis_control,
-    comparision_coded,
-    outcome_clean,
-    outcome_coded,
-    followup,
-    N_calculated,
-    n_outcome,
-    n_no_outcome,
-    n_cu,
-    n_ncu,
-    statistical_method,
-    mean_in_outcome_group = `mean_in__outcome_group`,
-    sd_in_outcome_group = `sd_in_outcome_group`,
-    mean_in_no_outcome_group = `mean_in_no-outcome_group`,
-    sd_in_no_outcome_group = `sd_in_no-outcome_group`,
-    mean_c,
-    sd_c,
-    mean_nc,
-    sd_nc,
-    smd,
-    smd_measure,
-    lci_smd,
-    uci_smd,
-    p_smd = `p(smd)`,
-    b,
-    se_b,
-    p_b,
-    ab,
-    se_ab,
-    p_ab,
-    covariates_ab,
-    `β_lci`,
-    `β_uci`,
-    f_value = `f-value`,
-    other_statistical_method,
-    factor,
-    statistical_parameter,
-    p_value = `p-value`,
-    factors_accounted_for,
-    time_frame,
-    percent_outcome = `%_outcome`,
-    statistical_method,
-    percent_chr_transition_to_fep_in_cannabis_groups = `%_of_chr_transition_to_fep_in_cannabis_grups`,
-    se_of_percent_transition_cu = `se_of_%_transition_cu`,
-    percent_chr_transition_to_fep_in_no_cannabis_groups = `%_of_chr_transition_to_fep_in_no-cannabis_grups`,
-    `se_of_%_transition_ncu`,
-    `%_in_outcome_group`,
-    `%_in_no-outcome_group`
-  )
 
 
 #***************calculate_effectsize(SMD)*************************************************************
 
-df_HP_continous <- df_HP_continous  %>%
+df_HP_continous <- df_plcohort_HP %>%
 mutate(across(c(mean_c, sd_c, n_cu, mean_nc, sd_nc, n_ncu), as.numeric))
 
 View(df_HP_continous)
@@ -111,7 +54,7 @@ df_HP_continous  <- df_HP_continous  %>%
   View(df_HP_continous)
 
 df_HP_continous  <- df_HP_continous  %>%
-  group_by(study) %>%
+  group_by(studycode) %>%
   mutate(esid = row_number()) %>%
   ungroup()
 
@@ -121,20 +64,20 @@ df_HP_continous  <- df_HP_continous  %>%
 df_HP_continous  <- escalc(measure = "SMD", 
                       m1i = mean_c, sd1i = sd_c, n1i = n_cu, 
                       m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu, 
-                      data = df_HP_continous , slab=paste("Study", study, "Estimate", esid)) 
+                      data = df_HP_continous , slab=paste("Study", studycode, "Estimate", esid)) 
                                       
                       
 
 ### assume that the effect sizes within studies are correlated with rho=0.6
-V <- vcalc(vi, cluster=study, obs=esid, data=df_HP_continous, rho=0.6)
+V <- vcalc(vi, cluster=studycode, obs=esid, data=df_HP_continous, rho=0.6)
  
 ### fit multilevel model using this approximate V matrix
-res <- rma.mv(yi, V, random = ~ 1 | study/esid, data=df_HP_continous , digits=3)
+res <- rma.mv(yi, V, random = ~ 1 | studycode/esid, data=df_HP_continous , digits=3)
 res
 
 par(tck=-.01, mgp=c(1,0.01,0), mar=c(2,4,0,2))
  
-dd <- c(0,diff(df_HP_continous $study))
+dd <- c(0,diff(df_HP_continous$studycode))
 rows <- (1:res$k) + cumsum(dd)
 
 

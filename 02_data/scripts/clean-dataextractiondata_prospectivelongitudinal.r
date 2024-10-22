@@ -555,7 +555,7 @@ View(as.data.frame(table(df_plcohort$fepvschronic_coded)))
 #citation
 #title
  
- #tidy data 
+#tidy data 
 
 
 
@@ -571,6 +571,63 @@ dev.off()
 
 
 #*****************************************CLEAN STATISTICALDATA********************************************************
+#relevant columns:
+
+#sample_size_(total_n)
+#total_n
+#"n_outcome"
+#"n_no_outcome"
+#"n_cu"
+ #"n_ncu"
+#"cu_p"
+# "ncu_p"
+#"cu_np" "ncu_np" "or" "lci_or" "uci_or" "p_or" "rr" "lci_rr" "uci_rr" "p_rr" "hr" "lci_hr" "uci_hr" "p_hr" "timeframe_hr" "aor" "lci_aor" "uci_aor" "p_aor" "adjusted_factors_aor" "arr" "lci_arr" "uci_arr" "p_arr" "rr_direction" "adjusted_factors_arr" "ahr" "lci_ahr" "uci_ahr" "p_ahr""timeframe_ahr""covariates_ahr" "mean_in__outcome_group" "sd_in_outcome_group" "mean_in_no-outcome_group" "sd_in_no-outcome_group" "mean_c" "sd_c" "mean_nc" "sd_nc" "smd" "smd_measure" "lci_smd" "uci_smd"
+#"p(smd)"
+# "b"
+ #"se_b"
+ #"p_b"
+#"ab"
+# "se_ab"
+# "p_ab"
+# "covariates_ab"
+# "other_statistical_method"
+# "factor"
+# "statistical_parameter"
+# "p-value"
+# "factors_accounted_for"
+ #"time_frame"
+ #"%_outcome"
+#"or_direction"
+#"hr_direction"
+#"aor_direction"
+#"arr_direction"
+#"direction_ahr"
+#"statistical_method"
+#"extracted_from"
+#"corr"
+#"p_corr"
+#"acorr"
+#"p_acorr"
+#"covariates_acorr"
+#"%_of_chr_transition_to_fep_in_cannabis_grups"
+#"se_of_%_transition_cu"
+# "%_of_chr_transition_to_fep_in_no-cannabis_grups"
+#"se_of_%_transition_ncu"
+#"survival_curve?"
+#"icluded_in_meta-analysis"
+#"correlation_method"
+#"%_in_outcome_group"
+#"%_in_no-outcome_group"
+#"n_dcu"
+#"mean_dc"
+#"sd_dc"
+#"β_lci"
+#"β_uci"
+# "f-value"
+
+#************************Clean_N_values_and_calculate*****************
+
+
 
 #combine the variables that indicate the total samplesize N 
 #sample_size_(total_n)
@@ -617,8 +674,6 @@ df_plcohort <- df_plcohort %>%
   mutate(ncu_np_calculated = sapply(ncu_np, evaluate_or_keep))
 
 
-
-
 # View the selected columns
 View(df_plcohort %>%
   select(
@@ -642,12 +697,55 @@ View(df_plcohort %>%
     ncu_np_calculated
   ))
 
-
-
 df_plcohort <- df_plcohort %>%
   mutate(across(everything(), ~ str_replace_all(., "Invalid Number", "NA")))
 
 write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")
+
+#*****************Create_a_t-value_column*******************************
+
+View(df_plcohort %>%
+select(statistical_method,other_statistical_method,statistical_parameter))
+
+table(df_plcohort$statistical_method)
+table(df_plcohort$other_statistical_method)
+table(df_plcohort$statistical_parameter)
+
+#identify student t-test based on related values in other_statistical_method variable and the statistical_parameter variable
+df_plcohort <- df_plcohort %>%
+  mutate(other_statistical_method = case_when(
+    str_detect(other_statistical_method, "Student t test|t-student") ~ "Student's t-test",
+    str_detect(
+      statistical_parameter, "t=|student's t-test") ~ "Student's t-test",
+    TRUE ~ other_statistical_method  # Keep the existing value if it doesn't match
+  ))
+
+#make a new column t-value that fills with the statistical_parameter values if the method that i just cleaned is students t
+
+
+df_plcohort <- df_plcohort %>%
+  mutate(statistical_parameter = as.character(statistical_parameter)) %>%
+  mutate(t_value = if_else(other_statistical_method == "Student's t-test", statistical_parameter, NA_character_))
+
+table(df_plcohort$t_value)
+
+df_plcohort <- df_plcohort %>%
+  mutate(statistical_parameter = as.character(statistical_parameter)) %>%
+  mutate(t_value = if_else(other_statistical_method == "Student's t-test", statistical_parameter, NA_character_)) %>%
+  mutate(t_value = str_replace_all(t_value, "Student's t-test|t=", "")) %>%
+  mutate(t_value = as.numeric(t_value))
+
+
+write_xlsx(df_plcohort, "02_data/cleandata/cohort_df_clean.xlsx")
+
+
+
+#*******************************Calculate odds ratios from logistic regression**********************************************************
+
+# I could transform beta-values from logistic regression to odes if statistical method = logistic regression
+
+
+
 #sample_size_(total_n)
 #total_n
 #"n_outcome"
@@ -770,8 +868,6 @@ write_xlsx(summary, "04_visualization/dataexploration.xlsx")
 
 #********************ROBDATA***************************************
 
-View(df_plcohort %>%
-select(studycode,q1, q2, q3, q4, q5, q6, q7, q9,totalstars))
 
 #********************Create_Follow-Up_Code*********************
 

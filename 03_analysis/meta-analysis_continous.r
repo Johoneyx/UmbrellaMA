@@ -62,6 +62,7 @@ df_meta_analysis %>%
   arrange(studycode)%>%
   view()
 
+table(df_meta_analysis$smd)
 
 
 # Count how many complete raw SMD data exist
@@ -75,7 +76,9 @@ print(n_complete_SMDraw)
 
 #transform relevant rows to numeric , take the values from the n-columns that I calculated 
 dat_continous <- df_meta_analysis %>%
-mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated), as.numeric))
+mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd), as.numeric))
+
+
 
 #count now again how many complete raw SMD data exist
 n_complete_SMDraw_after <- dat_continous %>%
@@ -129,6 +132,7 @@ res
                                 
                                       
 #*****************************Create_Forestplot_Continous_DATA****
+
 par(tck=-.01, mgp=c(1,0.01,0), mar=c(2,4,0,2))
 
 dd <- c(0,diff(dat_continous$study))
@@ -152,8 +156,6 @@ var.names=c("yi","vi"))
 
 agg <- aggregate(dat_continous, cluster=study, V=vcov(res, type="obs"), addk=TRUE)
 
-agg <- agg[c(1,4,5,9)]
-agg
 
 res <- rma(yi, vi, method="EE", data=agg, digits=3)
 res

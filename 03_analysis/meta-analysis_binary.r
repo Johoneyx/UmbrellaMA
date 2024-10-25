@@ -172,7 +172,25 @@ res <- rma(yi, vi, method="EE", data=agg, digits=3)
 res
 
 forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE,
-       ilab=ki, ilab.lab="Estimates", ilab.xpos=-2)
+       ilab=ki,slab=studycode, ilab.lab="Estimates", ilab.xpos=-2)
 
 
+#***************with modelfit********
 
+forest(res, xlim=c(-4,5), mlab=mlabfun("model results", res), header=TRUE,
+       ilab=ki,slab=studycode, ilab.xpos=-2)
+ 
+### a little helper function to add Q-test, I^2, and tau^2 estimate info
+mlabfun <- function(text, x) {
+   list(bquote(paste(.(text),
+      " (Q = ", .(fmtx(x$QE, digits=2)),
+      ", df = ", .(x$k - x$p), ", ",
+      .(fmtp2(x$QEp)), "; ",
+      I^2, " = ", .(fmtx(x$I2, digits=1)), "%, ",
+      tau^2, " = ", .(fmtx(x$tau2, digits=2)), ")")))}
+ 
+
+
+ mlabfun <- function(text, res) {
+  paste(text, " (Q = ", round(res$QE, 2), ", p = ", round(res$QEp, 3), ")", sep="")
+}

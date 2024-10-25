@@ -95,8 +95,8 @@ print(n_complete_SMDraw_after) #perfect, all data is still there
 # Calculate effect sizes
 dat_continous <- escalc(measure = "SMD", 
                       m1i = mean_c, sd1i = sd_c, n1i = n_cu_calculated, 
-                      m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu_calculated, 
-                      data = dat_continous,, ti= t_value )#, slab=paste("Study", study, "Estimate", esid)))
+                      m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu_calculated, di=smd, 
+                      data = dat_continous, ti= t_value, slab=dat_continous$studycode)
 
 #how many have been calculated?
 nSMD <- sum(!is.na(dat_continous$yi))
@@ -120,6 +120,7 @@ dat_continous <- dat_continous %>%
   ungroup()
 
 View(dat_continous)
+
 #+++++++++++++++++MODEL_FITTING++++++++++++++++++++++++++++++++++++
 
 ### assume that the effect sizes within studies are correlated with rho=0.6
@@ -139,10 +140,10 @@ dd <- c(0,diff(dat_continous$study))
 rows <- (1:res$k) + cumsum(dd)
 
 
+
 forest(res, rows=rows, ylim=c(2,max(rows)+3), xlim=c(-10,14), cex=0.8,
        efac=c(0,1), header=TRUE, mlab="Pooled Estimate")
 abline(h = rows[c(1,diff(rows)) == 2] - 1, lty="dotted")
-
 
 
 #********************************Create Forestplot with aggregated values****************************
@@ -153,12 +154,12 @@ data =dat_continous,
 var.names=c("yi","vi"))
 
 
-
 agg <- aggregate(dat_continous, cluster=study, V=vcov(res, type="obs"), addk=TRUE)
 
 
 res <- rma(yi, vi, method="EE", data=agg, digits=3)
 res
 
-forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE,
+forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE, slab=studycode,
        ilab=ki, ilab.lab="Estimates", ilab.xpos=-2)
+

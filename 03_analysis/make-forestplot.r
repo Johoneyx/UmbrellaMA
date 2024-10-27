@@ -1,0 +1,10 @@
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(ggplot2)
+library(metafor)
+library(dplyr)
+library(stringr)
+library(purrr)
+library(openxlsx)
+

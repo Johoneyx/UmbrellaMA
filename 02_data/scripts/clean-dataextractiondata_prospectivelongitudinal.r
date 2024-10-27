@@ -626,6 +626,14 @@ dev.off()
 # "f-value"
 
 #************************Clean_N_values_and_calculate*****************
+#sometimes we put continued use in use column, sometimes in extra continued use column. Fill use column with continued use data 
+
+df_plcohort <- df_plcohort %>%
+mutate(n_cu = coalesce(n_cu,
+continued_use_n))%>%
+mutate(sd_c = coalesce(sd_continueduse,sd_c
+))
+
 
 
 

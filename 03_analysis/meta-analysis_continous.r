@@ -11,9 +11,11 @@ library(openxlsx)
 
 df_meta_analysis <- read_excel("02_data/cleandata/cohort_df_clean.xlsx")
 
-#--------Data_Preparation_Continous_Meta-Analysis-----------------------
+############################################
+#                 DATA PREPARATION         #
+############################################
 
-#view relevant data and check for strange values 
+#inspect relevant data 
 #relevant data: 
 
 df_meta_analysis %>%
@@ -62,8 +64,23 @@ df_meta_analysis %>%
   arrange(studycode)%>%
   view()
 
-table(df_meta_analysis$smd)
 
+#transform relevant rows to numeric, take the values from the n-columns that I calculated before
+dat_continous <- df_meta_analysis %>%
+mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd,t_value), as.numeric))
+
+#Other requirements:
+#pre-calculated SMDs must be uncorrected, if hedges g, backtransform to SMD
+#t-values must stem from independent student's t-test 
+
+
+
+###########################################
+#         SMD CALCULATION                 #
+###########################################
+
+
+#******Calculate SMD from Mean and SD*******
 
 # Count how many complete raw SMD data exist
 n_complete_SMDraw <- df_meta_analysis %>%
@@ -73,10 +90,9 @@ n_complete_SMDraw <- df_meta_analysis %>%
 # Print the count
 print(n_complete_SMDraw)
 
-
 #transform relevant rows to numeric , take the values from the n-columns that I calculated 
 dat_continous <- df_meta_analysis %>%
-mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd), as.numeric))
+mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd,t_value), as.numeric))
 
 
 
@@ -89,21 +105,78 @@ n_complete_SMDraw_after <- dat_continous %>%
 print(n_complete_SMDraw_after) #perfect, all data is still there
 
 
-
-#***************calculate_effectsize(SMD)*************************************************************
-
-# Calculate effect sizes
-dat_continous <- escalc(measure = "SMD", 
-                      m1i = mean_c, sd1i = sd_c, n1i = n_cu_calculated, 
-                      m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu_calculated, di=smd, 
-                      data = dat_continous, ti= t_value, slab=dat_continous$studycode)
+#Calculate SMD from mean and sd
+dat_continous <- escalc(measure = "SMD", m1i = mean_c, sd1i = sd_c, n1i = n_cu_calculated, 
+m2i = mean_nc, sd2i = sd_nc, n2i = n_ncu_calculated, data = dat_continous, slab=dat_continous$studycode)
 
 #how many have been calculated?
 nSMD <- sum(!is.na(dat_continous$yi))
 print(nSMD)
 
+View(dat_continous)
 
-#**************************prepare_data_for_modelfit****************
+dat_continous <- dat_continous %>%
+  rename(vi_SMDraw = vi, yi_SMDraw = yi)
+
+table(dat_continous$yi)
+
+#**************************Calculate_SMD_from_T***************************
+
+dat_continous <- escalc(measure = "SMD", 
+n1i = n_cu_calculated, n2i = n_ncu_calculated, data = dat_continous, ti= t_value, slab=dat_continous$studycode)
+
+dat_continous <- dat_continous %>%
+  rename(vi_SMD_t = vi, yi_SMD_t= yi)
+
+
+#****************Calculate from Precalculated SMD *****************
+
+dat_continous <- escalc(measure = "SMD", 
+ n1i = n_cu_calculated, n2i =n_ncu_calculated, di=smd, data = dat_continous, slab=dat_continous$studycode)
+
+dat_continous <- dat_continous %>%
+  rename(vi_SMD_precalc = vi, yi_SMD_precalc= yi)
+
+table(dat_continous$yi)
+
+#*****************Calculate from mean,sd continued use vs discontinued use ***********
+
+
+dat_continous <- escalc(measure = "SMD", m1i = mean_c, sd1i = sd_c, n1i =  
+m2i = mean_dc, sd2i = sd_dc, n2i = n_dcu data = dat_continous, slab=dat_continous$studycode)
+
+
+
+
+
+
+
+#***********Calculate from mean,sd continous use vs discontinued use*******************
+
+
+
+    n_dcu, 
+    mean_dc,
+    sd_dc,
+    print(dat_continous$continued_use),
+    #mean_starter,
+    #sd_starter,
+    continued_use_n,
+    sd_continueduse,
+    print(dat_continous$continued_use_n)
+    print(dat_continous$n_dcu)
+    print(dat_continous$mean_dc)
+ print(dat_continous$continued_use)
+
+
+
+#**************************prepare_data_for_modelfit************************
+
+
+
+
+
+
 
 #take only those rows that have SMD data
 dat_continous <- dat_continous %>%
@@ -121,7 +194,9 @@ dat_continous <- dat_continous %>%
 
 View(dat_continous)
 
-#+++++++++++++++++MODEL_FITTING++++++++++++++++++++++++++++++++++++
+###########################################
+#MODEL FITTING
+###########################################
 
 ### assume that the effect sizes within studies are correlated with rho=0.6
 V <- vcalc(vi, cluster=study, obs=esid, data=dat_continous, rho=0.6)
@@ -162,4 +237,10 @@ res
 
 forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE, slab=studycode,
        ilab=ki, ilab.lab="Estimates", ilab.xpos=-2)
+
+
+############################################
+#Forestplots 
+############################################
+
 

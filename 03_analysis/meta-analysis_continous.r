@@ -67,7 +67,7 @@ df_meta_analysis %>%
 
 #transform relevant rows to numeric, take the values from the n-columns that I calculated before
 dat_continous <- df_meta_analysis %>%
-mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd,t_value), as.numeric))
+mutate(across(c(mean_c, sd_c, n_cu_calculated, mean_nc, sd_nc, n_ncu_calculated, smd,t_value,discontinued_use_n,mean_dc,sd_dc), as.numeric))
 
 #Other requirements:
 #pre-calculated SMDs must be uncorrected, if hedges g, backtransform to SMD
@@ -141,41 +141,15 @@ table(dat_continous$yi)
 
 #*****************Calculate from mean,sd continued use vs discontinued use ***********
 
+dat_continous <- escalc(measure = "SMD", 
+m1i = mean_c, sd1i = sd_c, n1i = n_cu_calculated, 
+m2i = mean_dc, sd2i = sd_dc, n2i = discontinued_use_n, data=dat_continous)
 
-dat_continous <- escalc(measure = "SMD", m1i = mean_c, sd1i = sd_c, n1i =  
-m2i = mean_dc, sd2i = sd_dc, n2i = n_dcu data = dat_continous, slab=dat_continous$studycode)
-
-
-
-
-
-
-
-#***********Calculate from mean,sd continous use vs discontinued use*******************
-
-
-
-    n_dcu, 
-    mean_dc,
-    sd_dc,
-    print(dat_continous$continued_use),
-    #mean_starter,
-    #sd_starter,
-    continued_use_n,
-    sd_continueduse,
-    print(dat_continous$continued_use_n)
-    print(dat_continous$n_dcu)
-    print(dat_continous$mean_dc)
- print(dat_continous$continued_use)
-
+dat_continous <- dat_continous %>%
+  rename(vi_SMD_cVSdcRaw = vi, yi_SMD_cVSdcRaw= yi)
 
 
 #**************************prepare_data_for_modelfit************************
-
-
-
-
-
 
 
 #take only those rows that have SMD data

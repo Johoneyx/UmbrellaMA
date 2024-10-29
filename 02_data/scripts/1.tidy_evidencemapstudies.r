@@ -180,14 +180,21 @@ write.xlsx(evidencemap_tidy, "02_data/cleandata/evidencemap_tidy.xlsx")
 # as the reviews gave different information on these, they may have several different values separated by semicolons 
 #shortform
 
+
+# Ensure there are no conflicts with other packages
+
+library("conflicted")
+conflict_prefer("group_by", "dplyr")
+conflict_prefer("summarize", "dplyr")
+
 evidencemap_studylist <- evidencemap_tidy %>%
   group_by(studycode) %>%
   summarize(
     studydesign = paste(unique(studydesign), collapse = "; "),
     outcomes = paste(unique(Topic), collapse = "; "),
     populations = paste(unique(population), collapse = "; "),
-    cannabis_levels = paste(unique(cannabis_use), collapse = "; "),
-    reviews = paste(unique(reviews), collapse = "; ")
+   cannabis_levels = paste(unique(cannabis_use), collapse = "; "),
+   reviews = paste(unique(reviews), collapse = "; ")
   ) %>%
   ungroup()
 
@@ -246,14 +253,14 @@ View(df_extracted)
 #choose the relevant variables that interest me now to get an overview and collapse them (as there are different rows for the timepoints and statistical datapoints that have been extracted)
 df_extracted_short <- df_extracted %>%
   group_by(studycode) %>%
-  select(all_of(c("studycode", "prospective?", "comment", "relevant", "any issues?", "titel", "cohort", "cohort more detail", "dataextraction", "extracted by", "doublechecked by", "citation", "reference", "followup duration", "follow-up duration", "kind of psychosis", "fep vs chronic", "cannabis level of use", "comparision(control-group)", "time frame (cannabis use and outcome measure time)", "time frame", "cannabis use timeframe", "continuation of use timeframe", "continued use", "discontinued use", "cannabis measure"))) %>%
+  select(all_of(c("studycode", "prospective?", "comment", "relevant", "any issues?", "titel", "cohort", "cohort more detail", "dataextraction", "extracted by", "doublechecked by", "citation", "reference", "followup duration", "follow-up duration", "kind of psychosis", "fep vs chronic", "cannabis level of use", "comparision(control-group)", "time frame (cannabis use and outcome measure time)", "time frame", "cannabis use timeframe", "continuation of use timeframe", "continued use", "discontinued use", "cannabis measure","population"))) %>%
   summarize(
     prospective_extracted = paste(unique(`prospective?`), collapse = "; "),
     comment_extraction = paste(unique(c(comment, relevant, `any issues?`)), collapse = "; "),
     paper_title = paste(unique(titel), collapse = "; "),
     cohort_combined = paste(unique(c(cohort, `cohort more detail`)), collapse = "; "),
     #country = paste(unique(country), collapse = "; "),
-    #target_population = paste(unique(population), collapse = "; "),
+    population = paste(unique(population), collapse = "; "),
     extracted_doublechecked = paste(unique(c(dataextraction, `extracted by`, `doublechecked by`)), collapse = "; "),
     reference = paste(unique(c(citation, reference)), collapse = "; "),
     `follow-up` = paste(unique(c(`followup duration`, `follow-up duration`)), collapse = "; "),
@@ -272,6 +279,9 @@ evidencemap_studylist <- evidencemap_studylist %>%
 left_join(df_extracted_short, by="studycode")
 
 View(evidencemap_studylist)
+
+write_xlsx(evidencemap_studylist, "02_data/cleandata/studylist_evidencemap.xlsx")
+
 
 #only look at those studies that are not excluded
 evidencemap_studylist %>%

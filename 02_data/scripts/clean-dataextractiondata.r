@@ -63,6 +63,32 @@ merged_df$dataextraction <- recode(merged_df$dataextraction,
 
 merged_df_clean <- merged_df %>% filter(!is.na(firstauthor))
 
+merged_df <- merged_df  %>% 
+rename(target_population = `target population`)
+
+#i need the population variable for the studylist/flowchart
+merged_df_clean <- merged_df  %>%
+    mutate(population = case_when(
+    str_detect(target_population, "CHR") ~ "CHR",
+    str_detect(target_population, "HP") ~ "HP",
+    str_detect(target_population, "P") ~ "P",
+    str_detect(target_population, "APS") ~ "P",
+    str_detect(target_population, regex("Chronic", ignore_case = TRUE)) ~ "P",
+    str_detect(target_population, "Adolescents") ~ "HP",
+    str_detect(target_population, "NPS") ~ "P",
+     str_detect(target_population, "SCZ") ~ "P",
+      str_detect(target_population, "UHR") ~ "CHR",
+      str_detect(target_population, "ARMS") ~ "CHR",
+       str_detect(cohort, "Avon") ~ "HP",
+       str_detect(target_population, "NEMESIS") ~ "HP",
+       str_detect(cohort, "inpatients") ~ "P",
+       str_detect(cohort, "patients") ~ "P",
+       str_detect(cohort, "Birth") ~ "HP",
+    TRUE ~ NA_character_ 
+  ))
+
+View(merged_df)
+
 write_xlsx(merged_df_clean, "02_data/cleandata/merged_df_clean.xlsx")
 
 

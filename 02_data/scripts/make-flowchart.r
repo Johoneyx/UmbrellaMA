@@ -21,7 +21,7 @@ View(cohort_data_extracted)
 
 
 #**********************Datapreparation************************************
-
+    +     
 studylist <- evidencemap_tidy[,c("Topic","studydesign","reviews","outcome","studycode","Exclusion_coded")]#only select Topic, studycode, unique, potstudies, exclusion_coded
 extracted <- cohort_data_extracted[,c("studycode","population")]  #only select studycode and population, ``
 extracted <- unique(cohort_data_extracted[, .(studycode, population)], by = "studycode")  # Keep only the first occurrence of each studycode

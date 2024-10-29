@@ -43,7 +43,12 @@ V <- vcalc(vi_SMD_all, cluster=study, obs=esid, data=df_meta_analysis , rho=0.6)
 res <- rma.mv(yi_SMD_all, V, random = ~ 1 | study/esid, data=df_meta_analysis, digits=3)
 res
 
-                                
+
+############################################
+#Forestplots
+############################################
+
+
                                       
 #*****************************Create_Forestplot_Continous_DATA****
 
@@ -74,14 +79,9 @@ res <- rma(yi, vi, method="EE", data=agg, digits=3)
 res
 
 
-
-
-############################################
-#Forestplots 
-############################################
-
-
 forest(res, xlim=c(-4,5), mlab="Pooled Estimate", header=TRUE, slab=studycode,
        ilab=ki, ilab.lab="Estimates", ilab.xpos=-2)
 
+
+#add results of the multilevel randomeffects model to the plot 
 
